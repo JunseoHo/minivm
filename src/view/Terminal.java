@@ -16,7 +16,7 @@ public class Terminal extends TextAreaPanel {
     public Terminal() {
         this.inputBuffer = new LinkedList<>();
         this.appendString("Welcome to Mini-OS\n");
-        this.appendString("Project for System programming2 Myongji Univ. 2023-2 \n");
+        this.appendString("Project for System programming2 Myongji Univ. 2023-2 by Junseo Ho\n");
         this.textArea.addKeyListener(new TerminalKeyEventHandler());
     }
 

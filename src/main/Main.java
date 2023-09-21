@@ -10,13 +10,15 @@ import javax.swing.*;
 public class Main {
 
     public static void main(String[] args) throws Exception {
+        // config
         UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        MainFrame mainFrame = new MainFrame();
-        OperatingSystem os = new OperatingSystem();
+        // init modules
         CPU cpu = new CPU();
         Memory memory = new Memory();
-        mainFrame.associate(os, cpu, memory);
-        mainFrame.setVisible(true);
+        // associate modules
+        cpu.associate(memory);
+        // run
+        new Thread(cpu).start();
     }
 
 }

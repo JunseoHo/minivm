@@ -9,6 +9,7 @@ import java.awt.*;
 
 public class MainFrame extends JFrame {
 
+    // components
     private CPUPanel cpuPanel;
     private MemoryPanel memoryPanel;
     private Terminal terminal;
@@ -25,13 +26,13 @@ public class MainFrame extends JFrame {
         this.add(terminal = new Terminal(), 30, 460, 800, 430);
     }
 
-    public void associate(OperatingSystem os, CPU cpu, Memory memory) {
+    public void associate(OperatingSystem operatingSystem, CPU cpu, Memory memory) {
+        this.terminal.associate(operatingSystem);
         this.cpuPanel.associate(cpu);
-        this.terminal.associate(os);
         this.memoryPanel.associate(memory);
     }
 
-    public void add(Component c, int x, int y, int width, int height) {
+    private void add(Component c, int x, int y, int width, int height) {
         c.setBounds(x, y, width, height);
         add(c);
     }
