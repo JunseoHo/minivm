@@ -2,23 +2,26 @@ package main;
 
 import hardware.CPU;
 import hardware.Memory;
-import os.OperatingSystem;
-import view.MainFrame;
+import os.file_manager.FileManager;
+import os.memory_manager.MemoryManager;
+import os.process_manager.ProcessManager;
 
-import javax.swing.*;
+import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        // config
-        UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        // init modules
+        FileManager fileManager = new FileManager();
+        List<Long> values = fileManager.getValues("SumOneToTen");
         CPU cpu = new CPU();
-        Memory memory = new Memory();
-        // associate modules
-        cpu.associate(memory);
-        // run
         new Thread(cpu).start();
+        ProcessManager processManager = new ProcessManager(cpu);
+        Memory memory = new Memory();
+        cpu.associate(memory, processManager);
+        MemoryManager memoryManager = new MemoryManager(memory);
+        processManager.associate(memoryManager);
+        processManager.load(values);
+        processManager.load(values);
     }
 
 }

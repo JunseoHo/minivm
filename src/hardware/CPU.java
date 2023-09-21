@@ -2,30 +2,36 @@ package hardware;
 
 import main.MiniOSUtil;
 import os.process_manager.Context;
+import os.process_manager.ProcessManager;
 
 public class CPU implements Runnable {
 
     // Special-purpose registers
-    private int PC = 0;
-    private int MAR = 0;
-    private int MBR = 0;
-    private int IR_OPCODE = 0;
-    private int IR_OPERAND = 0;
+    private long PC = 0;
+    private long MAR = 0;
+    private long MBR = 0;
+    private long IR_OPCODE = 0;
+    private long IR_OPERAND = 0;
     // General registers
-    private int AC = 0;
+    private long AC = 0;
     // Segment registers
-    private int CS = 0;
-    private int DS = 0;
+    private long CS = 0;
+    private long DS = 0;
     // Status registers
+    public boolean isRunning = false;
     private boolean isZero = false;
     // Interrupt registers
     private boolean timeSliceExpired = false;
     private boolean halt = false;
     // Associations
     private Memory memory = null;
+    private ProcessManager processManager = null;
+    // Modules
+    private Timer timer = null;
 
-    public void associate(Memory memory) {
+    public void associate(Memory memory, ProcessManager processManager) {
         this.memory = memory;
+        this.processManager = processManager;
     }
 
     public Context getContext() {
@@ -38,33 +44,37 @@ public class CPU implements Runnable {
         context.AC = AC;
         context.CS = CS;
         context.DS = DS;
+        context.isRunning = isRunning;
         context.isZero = isZero;
         context.timeSliceExpired = timeSliceExpired;
         context.halt = halt;
         return context;
     }
 
-    public String status() {
-        return "[CPU Status]" +
-                "\nPC               :" + PC +
-                "\nMAR              :" + MAR +
-                "\nMBR              :" + MBR +
-                "\nIR_OPCODE        :" + IR_OPCODE +
-                "\nIR_OPERAND       :" + IR_OPERAND +
-                "\nAC               :" + AC +
-                "\nCS               :" + CS +
-                "\nDS               :" + DS +
-                "\nisZero           :" + isZero +
-                "\ntimeSliceExpired :" + timeSliceExpired +
-                "\nhalt             :" + halt;
+    public void setContext(Context context) {
+        PC = context.PC;
+        MAR = context.MAR;
+        MBR = context.MBR;
+        IR_OPCODE = context.IR_OPCODE;
+        IR_OPERAND = context.IR_OPERAND;
+        AC = context.AC;
+        CS = context.CS;
+        DS = context.DS;
+        isRunning = context.isRunning;
+        isZero = context.isZero;
+        timeSliceExpired = context.timeSliceExpired;
+        halt = context.halt;
     }
 
     @Override
     public void run() {
+        timer = new Timer();
+        timer.start();
         while (true) {
             MiniOSUtil.sleep(200);
-            if (PC == 0) continue;
+            if (!isRunning) continue;
             fetch();
+            ++PC;
             decode();
             execute();
             checkInterrupt();
@@ -73,7 +83,8 @@ public class CPU implements Runnable {
 
     private void fetch() {
         MAR = CS + PC;
-        MBR = memory.read(MAR);
+        System.out.println(MAR);
+        MBR = memory.read((int) MAR);
     }
 
     private void decode() {
@@ -82,7 +93,7 @@ public class CPU implements Runnable {
     }
 
     private void execute() {
-        switch (IR_OPCODE) {
+        switch ((int) IR_OPCODE) {
             case 0x00 -> halt();
             case 0x01 -> load();
             case 0x02 -> store();
@@ -95,7 +106,16 @@ public class CPU implements Runnable {
     }
 
     private void checkInterrupt() {
-
+        if (halt) {
+            System.out.println("Release!");
+            processManager.release();
+            halt = false;
+            timer.init();
+        } else if (timeSliceExpired) {
+            System.out.println("Context Switch!");
+            processManager.contextSwitch();
+            timeSliceExpired = false;
+        }
     }
 
     private void halt() {
@@ -103,11 +123,11 @@ public class CPU implements Runnable {
     }
 
     private void load() {
-        AC = memory.read(DS + IR_OPERAND);
+        AC = memory.read((int) (DS + IR_OPERAND));
     }
 
     private void store() {
-        memory.write(DS + IR_OPERAND, AC);
+        memory.write((int) (DS + IR_OPERAND), AC);
     }
 
     private void jump() {
@@ -131,8 +151,28 @@ public class CPU implements Runnable {
     }
 
     private void interrupt() {
-        switch (IR_OPERAND) {
+        switch ((int) IR_OPERAND) {
+            case 0x00:
+                System.out.println("PRINT : " + AC);
+        }
+    }
 
+    private class Timer extends Thread {
+
+        private int sec = 0;
+
+        public void init() {
+            sec = 0;
+            timeSliceExpired = false;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                ++this.sec;
+                if (this.sec > 2) timeSliceExpired = true;
+                MiniOSUtil.sleep(500);
+            }
         }
     }
 

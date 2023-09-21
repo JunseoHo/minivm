@@ -1,46 +1,31 @@
 package os.file_manager;
 
+import java.io.FileNotFoundException;
 import java.io.File;
+import java.util.*;
 
 public class FileManager {
 
-    private static final String ROOT_PATH = "file/";
-    private File currentDir;
+    private static final String STORAGE_PATH = "Storage";
+    private MiniOSDirectory currentDirectory = null;
 
     public FileManager() {
-        this.currentDir = new File(ROOT_PATH);
+        currentDirectory = new MiniOSDirectory("root");
+        currentDirectory.addFile(new MiniOSFile("SumOneToTen", 1, 12));
     }
 
-    public String ls() {
-        StringBuilder stringBuilder = new StringBuilder();
-        File[] fileNames = currentDir.listFiles();
-        if (fileNames == null) return "Empty directory.";
-        stringBuilder.append("[File list]");
-        for (File file : fileNames) {
-            stringBuilder.append("\n");
-            stringBuilder.append(file.isFile() ? "FILE      : " : "DIRECTORY : ");
-            stringBuilder.append(file.getName());
+    public List<Long> getValues(String name) {
+        try {
+            List<Long> values = new ArrayList<>();
+            Scanner scanner = new Scanner(new File(STORAGE_PATH));
+            MiniOSFile file = currentDirectory.getFile(name);
+            if (file == null) return null;
+            for (int idx = 0; idx < file.base; idx++) scanner.nextLine();
+            for (int idx = 0; idx < file.limit; idx++) values.add(Long.valueOf(scanner.nextLine()));
+            return values;
+        } catch (FileNotFoundException e) {
+            return null;
         }
-        return stringBuilder.toString();
     }
-
-    public String cd(String dirName) {
-        StringBuilder stringBuilder = new StringBuilder();
-        File newDir = new File(currentDir.getAbsolutePath() + "/" + dirName);
-        if (!newDir.exists()) return "Directory is not exist.";
-        if (!newDir.isDirectory()) return stringBuilder.append(dirName).append(" is not directory.").toString();
-        this.currentDir = newDir;
-        return stringBuilder.append("Directory is changed to ").append(dirName).append(".").toString();
-    }
-
-    public static void main(String[] args) {
-        FileManager fileManager = new FileManager();
-        System.out.println(fileManager.ls());
-        System.out.println(fileManager.cd("dir4"));
-        System.out.println(fileManager.cd("file0"));
-        System.out.println(fileManager.cd("dir1"));
-        System.out.println(fileManager.ls());
-    }
-
 
 }
