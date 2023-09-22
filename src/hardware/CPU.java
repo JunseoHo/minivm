@@ -66,6 +66,23 @@ public class CPU implements Runnable {
         halt = context.halt;
     }
 
+    public String status() {
+        String stringBuilder = "[CPU Status]" +
+                "\nPC               : " + PC +
+                "\nMAR              : " + MAR +
+                "\nMBR              : " + MBR +
+                "\nIR_OPCODE        : " + IR_OPCODE +
+                "\nIR_OPERAND       : " + IR_OPERAND +
+                "\nAC               : " + AC +
+                "\nCS               : " + CS +
+                "\nDS               : " + DS +
+                "\nisRunning        : " + isRunning +
+                "\nisZero           : " + isZero +
+                "\ntimeSliceExpired : " + timeSliceExpired +
+                "\nhalt             : " + halt;
+        return stringBuilder;
+    }
+
     @Override
     public void run() {
         timer = new Timer();
@@ -107,12 +124,10 @@ public class CPU implements Runnable {
 
     private void checkInterrupt() {
         if (halt) {
-            System.out.println("Release!");
             processManager.release();
             halt = false;
             timer.init();
         } else if (timeSliceExpired) {
-            System.out.println("Context Switch!");
             processManager.contextSwitch();
             timeSliceExpired = false;
         }

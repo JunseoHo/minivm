@@ -14,6 +14,7 @@ public class MemoryManager {
     private static final int PAGE_SIZE = 32;
     private Queue<Page> pages = null;
 
+
     public MemoryManager(Memory memory) {
         this.memory = memory;
         pages = new LinkedList<>();
@@ -22,7 +23,7 @@ public class MemoryManager {
     }
 
     public Page getPage() {
-        return pages.poll();
+        return pages.isEmpty() ? null : pages.poll();
     }
 
     public void addPage(Page page) {

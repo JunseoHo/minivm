@@ -25,4 +25,11 @@ public class Memory {
         return SIZE;
     }
 
+    public String status() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[Memory Status]");
+        for (int idx = 0; idx < SIZE; idx++)
+            stringBuilder.append("\n").append("0x").append(Integer.toHexString(idx)).append(" : ").append(memory[idx]);
+        return stringBuilder.toString();
+    }
 }

@@ -28,4 +28,10 @@ public class FileManager {
         }
     }
 
+    public String ls() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[").append(currentDirectory.name).append("]");
+        for (MiniOSFile file : currentDirectory.files) stringBuilder.append("\n").append("FILE : ").append(file.name);
+        return stringBuilder.toString();
+    }
 }
