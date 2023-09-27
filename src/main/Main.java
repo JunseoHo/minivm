@@ -1,6 +1,6 @@
 package main;
 
-import hardware.CPU;
+import hardware.cpu.CPU;
 import hardware.Memory;
 import hardware.io_device.MiniOSFrame;
 import os.OperatingSystem;

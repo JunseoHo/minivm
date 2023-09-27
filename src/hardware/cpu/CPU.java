@@ -1,0 +1,186 @@
+package hardware.cpu;
+
+import hardware.Memory;
+import main.MiniOSUtil;
+import os.OperatingSystem;
+import os.process_manager.ProcessManager;
+
+public class CPU implements Runnable {
+
+    // Special-purpose registers
+    private long PC = 0;
+    private long MAR = 0;
+    private long MBR = 0;
+    private long IR_ADDRESSING_MODE = 0; // 0x00 Immediate, 0x01 Direct, 0x02 Indirect
+    private long IR_OPCODE = 0;
+    private long IR_OPERAND_L = 0;
+    private long IR_OPERAND_R = 0;
+    // General registers
+    private long AC = 0;
+    // Segment registers
+    private long CS = 0;
+    private long DS = 0;
+    // Status registers
+    private boolean isRunning = false;
+    private boolean isZero = false;
+    // Interrupt registers
+    private boolean halt = false;
+    private boolean waitIO = false;
+    private boolean timeSliceExpired = false;
+    // Associations
+    private Memory memory = null;
+    private OperatingSystem operatingSystem = null;
+    // Modules
+    private Timer timer = null;
+
+    public void associate(Memory memory, OperatingSystem operatingSystem) {
+        this.memory = memory;
+        this.operatingSystem = operatingSystem;
+    }
+
+    public Context getContext() {
+        return new Context(PC, MAR, MBR, IR_ADDRESSING_MODE, IR_OPCODE, IR_OPERAND_L, IR_OPERAND_R,
+                AC, CS, DS, isRunning, isZero, halt, waitIO, timeSliceExpired);
+    }
+
+    public void setContext(Context context) {
+        PC = context.PC();
+        MAR = context.MAR();
+        MBR = context.MBR();
+        IR_ADDRESSING_MODE = context.IR_ADDRESSING_MODE();
+        IR_OPCODE = context.IR_OPCODE();
+        IR_OPERAND_L = context.IR_OPERAND_L();
+        IR_OPERAND_R = context.IR_OPERAND_R();
+        AC = context.AC();
+        CS = context.CS();
+        DS = context.DS();
+        isRunning = context.isRunning();
+        isZero = context.isZero();
+        halt = context.halt();
+        waitIO = context.waitIO();
+        timeSliceExpired = context.timeSliceExpired();
+    }
+
+    public String status() {
+        return getContext().toString();
+    }
+
+    @Override
+    public void run() {
+        (timer = new Timer()).start();
+        while (true) {
+            MiniOSUtil.sleep(200);
+            if (!isRunning) continue;
+            fetch();
+            decode();
+            execute();
+            checkInterrupt();
+        }
+    }
+
+    private void fetch() {
+        MBR = memory.read((int) (MAR = CS + (PC++)));
+    }
+
+    private void decode() {
+        IR_ADDRESSING_MODE = MBR >> 30;
+        IR_OPCODE = (MBR & 0x3C000000) >> 26;
+        IR_OPERAND_L = (MBR & 0x3FFE000) >> 13;
+        IR_OPERAND_R = MBR & 0x1FFF;
+    }
+
+    private void execute() {
+        switch ((int) IR_OPCODE) {
+            case 0x00 -> halt();
+            case 0x01 -> load();
+            case 0x02 -> store();
+            case 0x03 -> add();
+            case 0x04 -> subtract();
+            case 0x05 -> multiply();
+            case 0x06 -> jump();
+            case 0x07 -> jumpZero();
+            case 0x08 -> read();
+            case 0x09 -> write();
+            case 0x0A -> interrupt();
+        }
+    }
+
+    private void checkInterrupt() {
+        if (halt) operatingSystem.releaseRunningProcess();
+        else if (waitIO) operatingSystem.eventWaitRunningProcess();
+        else if (timeSliceExpired) {
+            operatingSystem.contextSwitch();
+            timer.init();
+        }
+    }
+
+    private void halt() {
+        halt = true;
+    }
+
+    private void load() {
+        if (IR_ADDRESSING_MODE == 0x00) AC = IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == 0x01) AC = memory.read((int) (DS + IR_OPERAND_R));
+    }
+
+    private void store() {
+        memory.write((int) (DS + IR_OPERAND_R), AC);
+    }
+
+    private void add() {
+        if (IR_ADDRESSING_MODE == 0x00) isZero = (AC += IR_OPERAND_R) == 0;
+        else if (IR_ADDRESSING_MODE == 0x01) isZero = (AC += memory.read((int) (DS + IR_OPERAND_R))) == 0;
+    }
+
+    private void subtract() {
+        if (IR_ADDRESSING_MODE == 0x00) isZero = (AC -= IR_OPERAND_R) == 0;
+        else if (IR_ADDRESSING_MODE == 0x01) isZero = (AC -= memory.read((int) (DS + IR_OPERAND_R))) == 0;
+    }
+
+    private void multiply() {
+        if (IR_ADDRESSING_MODE == 0x00) isZero = (AC *= IR_OPERAND_R) == 0;
+        else if (IR_ADDRESSING_MODE == 0x01) isZero = (AC *= memory.read((int) (DS + IR_OPERAND_R))) == 0;
+    }
+
+    private void jump() {
+        if (IR_ADDRESSING_MODE == 0x00) PC = IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == 0x01) PC = memory.read((int) (DS + IR_OPERAND_R));
+    }
+
+    private void jumpZero() {
+        if (isZero) jump();
+    }
+
+    private void read() {
+        operatingSystem.readStdin((int) (DS + IR_OPERAND_L), (int) IR_OPERAND_R);
+        waitIO = true;
+    }
+
+    private void write() {
+        operatingSystem.writeStdout((int) (DS + IR_OPERAND_L), (int) IR_OPERAND_R);
+        waitIO = true;
+    }
+
+    private void interrupt() {
+
+    }
+
+    private class Timer extends Thread {
+
+        private int sec = 0;
+
+        public void init() {
+            sec = 0;
+            timeSliceExpired = false;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                if (++sec > 2) timeSliceExpired = true;
+                MiniOSUtil.sleep(500);
+            }
+        }
+    }
+
+}

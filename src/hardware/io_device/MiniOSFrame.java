@@ -1,9 +1,8 @@
 package hardware.io_device;
 
-import hardware.CPU;
+import hardware.cpu.CPU;
 import hardware.Memory;
 import main.MiniOSUtil;
-import os.OperatingSystem;
 import os.SystemCall;
 
 import javax.swing.*;

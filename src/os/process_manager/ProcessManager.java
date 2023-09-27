@@ -1,6 +1,6 @@
 package os.process_manager;
 
-import hardware.CPU;
+import hardware.cpu.CPU;
 import os.memory_manager.MemoryManager;
 import os.memory_manager.Page;
 
