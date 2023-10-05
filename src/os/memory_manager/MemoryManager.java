@@ -1,6 +1,6 @@
 package os.memory_manager;
 
-import hardware.Memory;
+import hardware.memory.Memory;
 
 import java.util.LinkedList;
 import java.util.List;

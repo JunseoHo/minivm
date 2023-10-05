@@ -1,16 +1,16 @@
-package hardware;
+package hardware.memory;
 
 import java.util.Arrays;
 
 public class Memory {
 
-    // attributes
+    // Attributes
     private static final int SIZE = 512;
     private long[] memory = null;
 
     public Memory() {
         memory = new long[SIZE];
-        Arrays.fill(memory, 0);
+        clear(0, SIZE);
     }
 
     public long read(int addr) {
@@ -23,6 +23,11 @@ public class Memory {
 
     public int size() {
         return SIZE;
+    }
+
+    public void clear(int base, int limit) {
+        int index = -1;
+        while (++index < limit) memory[base + index] = 0;
     }
 
     public String status() {

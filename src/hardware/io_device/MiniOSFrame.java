@@ -1,7 +1,7 @@
 package hardware.io_device;
 
 import hardware.cpu.CPU;
-import hardware.Memory;
+import hardware.memory.Memory;
 import main.MiniOSUtil;
 import os.SystemCall;
 

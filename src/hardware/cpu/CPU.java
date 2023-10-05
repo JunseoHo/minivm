@@ -1,12 +1,10 @@
 package hardware.cpu;
 
-import hardware.Memory;
+import bios.BIOS;
+import hardware.memory.Memory;
 import main.MiniOSUtil;
-import os.OperatingSystem;
-import os.process_manager.ProcessManager;
 
 public class CPU implements Runnable {
-
     // Special-purpose registers
     private long PC = 0;
     private long MAR = 0;
@@ -24,18 +22,19 @@ public class CPU implements Runnable {
     private boolean isRunning = false;
     private boolean isZero = false;
     // Interrupt registers
+    private boolean powerOff = false;
     private boolean halt = false;
     private boolean waitIO = false;
     private boolean timeSliceExpired = false;
     // Associations
     private Memory memory = null;
-    private OperatingSystem operatingSystem = null;
+    private BIOS bios = null;
     // Modules
     private Timer timer = null;
 
-    public void associate(Memory memory, OperatingSystem operatingSystem) {
+    public void associate(Memory memory, BIOS bios) {
         this.memory = memory;
-        this.operatingSystem = operatingSystem;
+        this.bios = bios;
     }
 
     public Context getContext() {
@@ -68,8 +67,10 @@ public class CPU implements Runnable {
     @Override
     public void run() {
         (timer = new Timer()).start();
+        new Thread(bios).start();
         while (true) {
             MiniOSUtil.sleep(200);
+            if (powerOff) break;
             if (!isRunning) continue;
             fetch();
             decode();
@@ -106,12 +107,7 @@ public class CPU implements Runnable {
     }
 
     private void checkInterrupt() {
-        if (halt) operatingSystem.releaseRunningProcess();
-        else if (waitIO) operatingSystem.eventWaitRunningProcess();
-        else if (timeSliceExpired) {
-            operatingSystem.contextSwitch();
-            timer.init();
-        }
+
     }
 
     private void halt() {
@@ -152,17 +148,23 @@ public class CPU implements Runnable {
     }
 
     private void read() {
-        operatingSystem.readStdin((int) (DS + IR_OPERAND_L), (int) IR_OPERAND_R);
+        //operatingSystem.readStdin((int) (DS + IR_OPERAND_L), (int) IR_OPERAND_R);
         waitIO = true;
     }
 
     private void write() {
-        operatingSystem.writeStdout((int) (DS + IR_OPERAND_L), (int) IR_OPERAND_R);
+        //operatingSystem.writeStdout((int) (DS + IR_OPERAND_L), (int) IR_OPERAND_R);
         waitIO = true;
     }
 
     private void interrupt() {
 
+    }
+
+    public void interrupt(String interruptName) {
+        switch (interruptName) {
+            case "PowerOff" -> powerOff = true;
+        }
     }
 
     private class Timer extends Thread {

@@ -1,6 +1,7 @@
 package os.process_manager;
 
 import hardware.cpu.CPU;
+import hardware.cpu.Context;
 import os.memory_manager.MemoryManager;
 import os.memory_manager.Page;
 
@@ -22,13 +23,13 @@ public class ProcessManager {
     }
 
     public void load(List<Long> program) {
-        Page codeSegment = memoryManager.getPage();
-        Page dataSegment = memoryManager.getPage();
-        memoryManager.loadProgram(codeSegment, program);
-        Context context = new Context();
-        context.CS = codeSegment.base;
-        context.DS = dataSegment.base;
-        scheduler.admit(new Process(context, codeSegment, dataSegment));
+//        Page codeSegment = memoryManager.getPage();
+//        Page dataSegment = memoryManager.getPage();
+//        memoryManager.loadProgram(codeSegment, program);
+////        Context context = new Context();
+////        context.CS = codeSegment.base;
+////        context.DS = dataSegment.base;
+//        scheduler.admit(new Process(new Context(), codeSegment, dataSegment));
     }
 
     public void associate(MemoryManager memoryManager) {
@@ -69,15 +70,15 @@ public class ProcessManager {
         }
 
         public void release() {
-            memoryManager.addPage(runningProcess.getCodeSegment());
-            memoryManager.addPage(runningProcess.getDataSegment());
-            if (readyQueue.isEmpty()) {
-                runningProcess = null;
-                cpu.isRunning = false;
-            }else{
-                runningProcess = readyQueue.poll();
-                cpu.setContext(runningProcess.getContext());
-            }
+//            memoryManager.addPage(runningProcess.getCodeSegment());
+//            memoryManager.addPage(runningProcess.getDataSegment());
+//            if (readyQueue.isEmpty()) {
+//                runningProcess = null;
+//                cpu.isRunning = false;
+//            }else{
+//                runningProcess = readyQueue.poll();
+//                cpu.setContext(runningProcess.getContext());
+//            }
         }
     }
 

@@ -1,36 +1,20 @@
 package main;
 
+import bios.BIOS;
 import hardware.cpu.CPU;
-import hardware.Memory;
-import hardware.io_device.MiniOSFrame;
-import os.OperatingSystem;
-import os.SystemCall;
-import os.file_manager.FileManager;
-import os.memory_manager.MemoryManager;
-import os.process_manager.ProcessManager;
-
-import javax.swing.*;
-import java.util.List;
+import hardware.memory.Memory;
+import os.MiniOS;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        FileManager fileManager = new FileManager();
-        List<Long> values = fileManager.getValues("SumOneToTen");
         CPU cpu = new CPU();
-        new Thread(cpu).start();
-        ProcessManager processManager = new ProcessManager(cpu);
         Memory memory = new Memory();
-        cpu.associate(memory, processManager);
-        MemoryManager memoryManager = new MemoryManager(memory);
-        processManager.associate(memoryManager);
-        SystemCall os = new OperatingSystem();
-        MiniOSFrame miniOSFrame = new MiniOSFrame(cpu, memory, os);
-        miniOSFrame.setVisible(true);
-        processManager.load(values);
-        processManager.load(values);
-        processManager.load(values);
+        BIOS bios = new BIOS();
+        bios.associate(cpu, memory);
+        bios.install(new MiniOS("MiniOS"));
+        cpu.associate(memory, bios);
+        cpu.run();
     }
 
 }

@@ -1,12 +1,9 @@
 package hardware.io_device;
 
-import os.OperatingSystem;
 import os.SystemCall;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class MiniOSTerminal extends MiniOSTextArea {
 
@@ -25,13 +22,13 @@ public class MiniOSTerminal extends MiniOSTextArea {
     }
 
     private void processCommand(String[] token) {
-        if (token.length > 2) textArea.append("\nInvalid arguments.");
-        else {
-            switch (token[0]) {
-                case "ls" -> append(systemCall.ls());
-                default -> append("Unknown command.");
-            }
-        }
+//        if (token.length > 2) textArea.append("\nInvalid arguments.");
+//        else {
+//            switch (token[0]) {
+//                case "ls" -> append(systemCall.ls());
+//                default -> append("Unknown command.");
+//            }
+//        }
     }
 
     private class MiniOSTerminalKeyHandler extends KeyAdapter {

@@ -1,15 +1,21 @@
 package os;
 
-public interface SystemCall {
-    String ls();
+import hardware.cpu.CPU;
+import hardware.memory.Memory;
 
-    void readStdin(int base, int limit);
+public abstract class SystemCall implements Runnable{
+    // Attributes
+    private String name;
 
-    void writeStdout(int base, int limit);
+    public SystemCall(String name) {
+        this.name = name;
+    }
 
-    void releaseRunningProcess();
+    public String getName() {
+        return name;
+    }
 
-    void eventWaitRunningProcess();
+    public abstract void associate(CPU cpu, Memory memory);
+    public abstract void init();
 
-    void contextSwitch();
 }
