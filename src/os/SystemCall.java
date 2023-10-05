@@ -3,7 +3,7 @@ package os;
 import hardware.cpu.CPU;
 import hardware.memory.Memory;
 
-public abstract class SystemCall implements Runnable{
+public abstract class SystemCall{
     // Attributes
     private String name;
 
@@ -17,5 +17,7 @@ public abstract class SystemCall implements Runnable{
 
     public abstract void associate(CPU cpu, Memory memory);
     public abstract void init();
+
+    public abstract void run();
 
 }

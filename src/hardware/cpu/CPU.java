@@ -66,6 +66,7 @@ public class CPU implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("CPU power on.");
         (timer = new Timer()).start();
         new Thread(bios).start();
         while (true) {
@@ -77,6 +78,8 @@ public class CPU implements Runnable {
             execute();
             checkInterrupt();
         }
+        timer.interrupt();
+        System.out.println("CPU power off.");
     }
 
     private void fetch() {
@@ -180,7 +183,7 @@ public class CPU implements Runnable {
         public void run() {
             while (true) {
                 if (++sec > 2) timeSliceExpired = true;
-                MiniOSUtil.sleep(500);
+                if (!MiniOSUtil.sleep(500)) return;
             }
         }
     }

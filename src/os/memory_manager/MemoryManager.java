@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class MemoryManager {
+public class MemoryManager implements Runnable {
 
     // Associations
     private Memory memory = null;
@@ -33,5 +33,10 @@ public class MemoryManager {
     public void loadProgram(Page codeSegment, List<Long> program) {
         for (int idx = 0; idx < program.size(); idx++)
             memory.write(codeSegment.base + idx, program.get(idx));
+    }
+
+    @Override
+    public void run() {
+
     }
 }

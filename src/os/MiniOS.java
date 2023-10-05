@@ -6,14 +6,18 @@ import os.file_manager.FileManager;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
 
+import java.util.Scanner;
+
+import static java.lang.System.exit;
+
 public class MiniOS extends SystemCall {
     // Associations
     private CPU cpu = null;
     private Memory memory = null;
     // Modules
     private ProcessManager processManager = null;
-    private FileManager fileManager = null;
     private MemoryManager memoryManager = null;
+    private FileManager fileManager = null;
 
     public MiniOS(String name) {
         super(name);
@@ -26,13 +30,23 @@ public class MiniOS extends SystemCall {
 
     public void init() {
         processManager = new ProcessManager(cpu);
-        fileManager = new FileManager();
         memoryManager = new MemoryManager(memory);
+        fileManager = new FileManager();
     }
 
-
-    @Override
     public void run() {
-        System.out.println("Welcome to MiniOS.");
+        new Thread(processManager).start();
+        new Thread(memoryManager).start();
+        System.out.println("Welcome to " + getName() + ".");
+        while (true) {
+            System.out.print("$> ");
+            switch (new Scanner(System.in).nextLine()) {
+                case "exit" -> {
+                    System.out.println("Thank you for using " + getName() + ".");
+                    return;
+                }
+                default -> System.out.println("Command not found.");
+            }
+        }
     }
 }

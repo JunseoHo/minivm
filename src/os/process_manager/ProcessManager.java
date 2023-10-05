@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class ProcessManager {
+public class ProcessManager implements Runnable {
 
     // Associations
     private CPU cpu;
@@ -42,6 +42,11 @@ public class ProcessManager {
 
     public void release() {
         scheduler.release();
+    }
+
+    @Override
+    public void run() {
+
     }
 
     private class Scheduler {

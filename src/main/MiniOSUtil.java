@@ -2,11 +2,12 @@ package main;
 
 public class MiniOSUtil {
 
-    public static void sleep(long millis) {
+    public static boolean sleep(long millis) {
         try {
             Thread.sleep(millis);
+            return true;
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 

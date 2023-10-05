@@ -40,7 +40,7 @@ public class BIOS implements Runnable {
         System.out.println("Booting " + installedOS.getName() + "...");
         installedOS.associate(cpu, memory);
         installedOS.init();
-        new Thread(installedOS).start();
+        installedOS.run();
     }
 
     @Override
@@ -52,5 +52,7 @@ public class BIOS implements Runnable {
             return;
         } else System.out.println("No system problems.");
         bootOS();
+        System.out.println("Stop BIOS.");
+        cpu.interrupt("PowerOff");
     }
 }
