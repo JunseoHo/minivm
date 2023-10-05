@@ -1,0 +1,24 @@
+{
+  "name": "root",
+  "type": "directory",
+  "children": [
+    {
+      "name": "dir1",
+      "type": "directory",
+      "children": [
+        {
+          "name": "SumOneToTen",
+          "type": "file",
+          "location": 1,
+          "size": 11
+        }
+      ]
+    },
+    {
+      "name": "SumOneToTen",
+      "type": "file",
+      "location": 1,
+      "size": 11
+    }
+  ]
+}

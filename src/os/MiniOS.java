@@ -41,6 +41,7 @@ public class MiniOS extends SystemCall {
         while (true) {
             System.out.print("$> ");
             switch (new Scanner(System.in).nextLine()) {
+                case "ls" -> fileManager.ls();
                 case "exit" -> {
                     System.out.println("Thank you for using " + getName() + ".");
                     return;

@@ -55,4 +55,6 @@ public class BIOS implements Runnable {
         System.out.println("Stop BIOS.");
         cpu.interrupt("PowerOff");
     }
+
+
 }
