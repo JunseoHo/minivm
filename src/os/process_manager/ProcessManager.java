@@ -9,17 +9,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class ProcessManager implements Runnable {
-
+public class ProcessManager {
     // Associations
     private CPU cpu;
-    private MemoryManager memoryManager;
     // Modules
     private Scheduler scheduler;
 
     public ProcessManager(CPU cpu) {
         this.cpu = cpu;
-        scheduler = new Scheduler();
+        scheduler = new Scheduler(cpu);
     }
 
     public void load(List<Long> program) {
@@ -32,10 +30,6 @@ public class ProcessManager implements Runnable {
 //        scheduler.admit(new Process(new Context(), codeSegment, dataSegment));
     }
 
-    public void associate(MemoryManager memoryManager) {
-        this.memoryManager = memoryManager;
-    }
-
     public void contextSwitch() {
         scheduler.contextSwitch();
     }
@@ -44,47 +38,8 @@ public class ProcessManager implements Runnable {
         scheduler.release();
     }
 
-    @Override
-    public void run() {
-
-    }
-
-    private class Scheduler {
-
-        private Process runningProcess = null;
-        private Queue<Process> readyQueue = null;
-
-        public Scheduler() {
-            readyQueue = new LinkedList<>();
-        }
-
-        public void admit(Process process) {
-            readyQueue.add(process);
-            if (runningProcess == null) {
-                runningProcess = readyQueue.poll();
-                cpu.setContext(runningProcess.getContext());
-            }
-        }
-
-        public void contextSwitch() {
-            if (readyQueue.isEmpty()) return;
-            runningProcess.setContext(cpu.getContext());
-            readyQueue.add(runningProcess);
-            runningProcess = readyQueue.poll();
-            cpu.setContext(runningProcess.getContext());
-        }
-
-        public void release() {
-//            memoryManager.addPage(runningProcess.getCodeSegment());
-//            memoryManager.addPage(runningProcess.getDataSegment());
-//            if (readyQueue.isEmpty()) {
-//                runningProcess = null;
-//                cpu.isRunning = false;
-//            }else{
-//                runningProcess = readyQueue.poll();
-//                cpu.setContext(runningProcess.getContext());
-//            }
-        }
+    public void start() {
+        new Thread(scheduler).start();
     }
 
     public void processInterrupt(int i) {

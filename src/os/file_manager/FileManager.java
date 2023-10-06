@@ -17,23 +17,24 @@ public class FileManager {
 
     public FileManager() {
         try {
-            currentDir = init((JSONObject) new JSONParser().parse(new FileReader(FILE_INDEX_PATH)));
+            currentDir = init(null, (JSONObject) new JSONParser().parse(new FileReader(FILE_INDEX_PATH)));
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public MiniOSFile init(JSONObject jsonObject) {
+    public MiniOSFile init(MiniOSFile parent, JSONObject jsonObject) {
         String name = (String) jsonObject.get("name");
         String type = (String) jsonObject.get("type");
         MiniOSFile file = new MiniOSFile(name, type);
         if (type.equals("directory")) {
             JSONArray children = (JSONArray) jsonObject.get("children");
-            for (int idx = 0; idx < children.size(); idx++) file.addFile(init((JSONObject) children.get(idx)));
+            for (int idx = 0; idx < children.size(); idx++) file.addFile(init(file, (JSONObject) children.get(idx)));
         } else if (type.equals("file")) {
             file.location = (long) jsonObject.get("location");
             file.size = (long) jsonObject.get("size");
         }
+        file.parent = parent;
         return file;
     }
 
@@ -57,5 +58,29 @@ public class FileManager {
         System.out.printf("%-12s%-20s%-5s\n", "Type", "Name", "Size");
         System.out.printf("-------------------------------------\n");
         for (MiniOSFile child : currentDir.children) child.print();
+    }
+
+    public void cd(String dirName) {
+        if (dirName.equals("..")) {
+            if (currentDir.parent == null) System.out.println("This directory is root.");
+            else {
+                currentDir = currentDir.parent;
+                System.out.println("Directory is changed to " + currentDir.name + ".");
+            }
+            return;
+        }
+        for (MiniOSFile child : currentDir.children) {
+            if (child.name.equals(dirName)) {
+                if (child.type.equals("directory")) {
+                    currentDir = child;
+                    System.out.println("Directory is changed to " + dirName + ".");
+                    return;
+                } else if (child.type.equals("file")) {
+                    System.out.println(dirName + " is file.");
+                    return;
+                }
+            }
+        }
+        System.out.println(dirName + " is not found.");
     }
 }

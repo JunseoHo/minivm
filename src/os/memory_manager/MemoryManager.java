@@ -14,7 +14,6 @@ public class MemoryManager implements Runnable {
     private static final int PAGE_SIZE = 32;
     private Queue<Page> pages = null;
 
-
     public MemoryManager(Memory memory) {
         this.memory = memory;
         pages = new LinkedList<>();
@@ -30,7 +29,7 @@ public class MemoryManager implements Runnable {
         pages.add(page);
     }
 
-    public void loadProgram(Page codeSegment, List<Long> program) {
+    public void load(Page codeSegment, List<Long> program) {
         for (int idx = 0; idx < program.size(); idx++)
             memory.write(codeSegment.base + idx, program.get(idx));
     }

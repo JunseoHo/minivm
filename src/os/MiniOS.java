@@ -6,6 +6,7 @@ import os.file_manager.FileManager;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
 
+import java.util.List;
 import java.util.Scanner;
 
 import static java.lang.System.exit;
@@ -35,13 +36,15 @@ public class MiniOS extends SystemCall {
     }
 
     public void run() {
-        new Thread(processManager).start();
+        processManager.start();
         new Thread(memoryManager).start();
         System.out.println("Welcome to " + getName() + ".");
         while (true) {
             System.out.print("$> ");
-            switch (new Scanner(System.in).nextLine()) {
+            String input[] = (new Scanner(System.in).nextLine().split(" "));
+            switch (input[0]) {
                 case "ls" -> fileManager.ls();
+                case "cd" -> fileManager.cd(input[1]);
                 case "exit" -> {
                     System.out.println("Thank you for using " + getName() + ".");
                     return;

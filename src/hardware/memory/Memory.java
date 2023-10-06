@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class Memory {
 
     // Attributes
-    private static final int SIZE = 512;
+    private static final int SIZE = 1024;
     private long[] memory = null;
 
     public Memory() {

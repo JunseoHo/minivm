@@ -10,6 +10,7 @@ public class MiniOSFile {
     public long location;
     public long size;
     public List<MiniOSFile> children;
+    public MiniOSFile parent;
 
     public MiniOSFile(String name, String type) {
         this.name = name;
@@ -17,6 +18,7 @@ public class MiniOSFile {
         location = 0;
         size = 0;
         this.children = new ArrayList<>();
+        parent = null;
     }
 
     public void addFile(MiniOSFile file) {
