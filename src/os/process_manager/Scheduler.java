@@ -1,6 +1,7 @@
 package os.process_manager;
 
 import hardware.cpu.CPU;
+import hardware.cpu.Context;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -46,5 +47,19 @@ public class Scheduler implements Runnable {
     @Override
     public void run() {
 
+    }
+
+    public void load(Process process) {
+        if (runningProcess == null) {
+            runningProcess = process;
+            cpu.setContext(process.getContext());
+        }
+    }
+
+    public void exit() {
+        runningProcess = null;
+        Context context = new Context(0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                false, false, false, false, false);
+        cpu.setContext(context);
     }
 }

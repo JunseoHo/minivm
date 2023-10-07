@@ -18,16 +18,11 @@ public class ProcessManager {
     public ProcessManager(CPU cpu) {
         this.cpu = cpu;
         scheduler = new Scheduler(cpu);
+        new Thread(scheduler).start();
     }
 
-    public void load(List<Long> program) {
-//        Page codeSegment = memoryManager.getPage();
-//        Page dataSegment = memoryManager.getPage();
-//        memoryManager.loadProgram(codeSegment, program);
-////        Context context = new Context();
-////        context.CS = codeSegment.base;
-////        context.DS = dataSegment.base;
-//        scheduler.admit(new Process(new Context(), codeSegment, dataSegment));
+    public void load(Process process) {
+        scheduler.load(process);
     }
 
     public void contextSwitch() {
@@ -43,5 +38,9 @@ public class ProcessManager {
     }
 
     public void processInterrupt(int i) {
+    }
+
+    public void exit() {
+        scheduler.exit();
     }
 }

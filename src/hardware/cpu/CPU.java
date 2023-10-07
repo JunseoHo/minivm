@@ -3,6 +3,7 @@ package hardware.cpu;
 import bios.BIOS;
 import hardware.memory.Memory;
 import main.MiniOSUtil;
+import os.SystemCall;
 
 public class CPU implements Runnable {
     // Special-purpose registers
@@ -29,12 +30,14 @@ public class CPU implements Runnable {
     // Associations
     private Memory memory = null;
     private BIOS bios = null;
+    private SystemCall os = null;
     // Modules
     private Timer timer = null;
 
     public void associate(Memory memory, BIOS bios) {
         this.memory = memory;
         this.bios = bios;
+        this.os = bios.getInstalledOS();
     }
 
     public Context getContext() {
@@ -94,6 +97,7 @@ public class CPU implements Runnable {
     }
 
     private void execute() {
+        System.out.println(IR_ADDRESSING_MODE + " " + IR_OPCODE + " " + IR_OPERAND_L + " " + IR_OPERAND_R);
         switch ((int) IR_OPCODE) {
             case 0x00 -> halt();
             case 0x01 -> load();
@@ -110,7 +114,9 @@ public class CPU implements Runnable {
     }
 
     private void checkInterrupt() {
-
+        if (halt) {
+            os.exitRunningProcess();
+        }
     }
 
     private void halt() {
@@ -186,6 +192,14 @@ public class CPU implements Runnable {
                 if (!MiniOSUtil.sleep(500)) return;
             }
         }
+    }
+
+    public boolean getTimeSliceExpired() {
+        return timeSliceExpired;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
     }
 
 }
