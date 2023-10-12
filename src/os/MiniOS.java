@@ -19,8 +19,8 @@ public class MiniOS extends SystemCall {
     private MemoryManager memoryManager = null;
     private FileManager fileManager = null;
 
-    public MiniOS(String name) {
-        super(name);
+    public MiniOS() {
+        super("MiniOS");
     }
 
     public void associate(CPU cpu, Memory memory) {

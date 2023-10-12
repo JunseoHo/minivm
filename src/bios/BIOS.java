@@ -4,9 +4,6 @@ import hardware.cpu.CPU;
 import hardware.memory.Memory;
 import os.SystemCall;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class BIOS implements Runnable {
     // Computing resources
     private CPU cpu = null;
@@ -14,12 +11,12 @@ public class BIOS implements Runnable {
     // Attributes
     private SystemCall installedOS = null;
 
-    public void associate(CPU cpu, Memory memory) {
+    public void bindHardware(CPU cpu, Memory memory) {
         this.cpu = cpu;
         this.memory = memory;
     }
 
-    public void install(SystemCall os) {
+    public void installSystem(SystemCall os) {
         installedOS = os;
     }
 

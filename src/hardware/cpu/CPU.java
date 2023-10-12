@@ -5,7 +5,7 @@ import hardware.memory.Memory;
 import main.MiniOSUtil;
 
 public class CPU implements Runnable {
-    // Special-purpose registers
+    // special-purpose registers
     private long PC = 0;
     private long MAR = 0;
     private long MBR = 0;
@@ -13,28 +13,34 @@ public class CPU implements Runnable {
     private long IR_OPCODE = 0;
     private long IR_OPERAND_L = 0;
     private long IR_OPERAND_R = 0;
-    // General registers
+    // general registers
     private long AC = 0;
-    // Segment registers
+    // segment registers
     private long CS = 0;
     private long DS = 0;
-    // Status registers
+    // status registers
     private boolean isRunning = false;
     private boolean isZero = false;
-    // Interrupt registers
+    // interrupt registers
     private boolean powerOff = false;
     private boolean halt = false;
     private boolean waitIO = false;
     private boolean timeSliceExpired = false;
-    // Associations
-    private Memory memory = null;
-    private BIOS bios = null;
-    // Modules
-    private Timer timer = null;
+    // hardware
+    private Memory memory;
+    // system
+    private BIOS bios;
+    // components
+    private Timer timer;
 
-    public void associate(Memory memory, BIOS bios) {
-        this.memory = memory;
+    public void bindHardware(Memory memory) { this.memory = memory; }
+
+    public void installSystem(BIOS bios) {
         this.bios = bios;
+    }
+
+    public String status() {
+        return getContext().toString();
     }
 
     public Context getContext() {
@@ -58,10 +64,6 @@ public class CPU implements Runnable {
         halt = context.halt();
         waitIO = context.waitIO();
         timeSliceExpired = context.timeSliceExpired();
-    }
-
-    public String status() {
-        return getContext().toString();
     }
 
     @Override
