@@ -1,10 +1,10 @@
-package operating_system;
+package os;
 
 import hardware.cpu.CPU;
 import hardware.memory.Memory;
-import operating_system.file_manager.FileManager;
-import operating_system.memory_manager.MemoryManager;
-import operating_system.process_manager.ProcessManager;
+import os.file_manager.FileManager;
+import os.memory_manager.MemoryManager;
+import os.process_manager.ProcessManager;
 
 import java.util.Scanner;
 
@@ -19,8 +19,8 @@ public class MiniOS extends SystemCall {
     private MemoryManager memoryManager = null;
     private FileManager fileManager = null;
 
-    public MiniOS() {
-        super("MiniOS");
+    public MiniOS(String name) {
+        super(name);
     }
 
     public void associate(CPU cpu, Memory memory) {

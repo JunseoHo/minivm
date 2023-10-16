@@ -20,4 +20,5 @@ public abstract class SystemCall{
 
     public abstract void run();
 
+    public abstract void exitRunningProcess();
 }

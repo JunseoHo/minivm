@@ -54,4 +54,7 @@ public class BIOS implements Runnable {
     }
 
 
+    public SystemCall getInstalledOS() {
+        return installedOS;
+    }
 }
