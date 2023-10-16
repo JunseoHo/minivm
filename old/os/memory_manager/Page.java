@@ -1,4 +1,4 @@
-package os.memory_manager;
+package operating_system.memory_manager;
 
 public class Page {
 

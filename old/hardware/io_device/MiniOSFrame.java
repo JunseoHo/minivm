@@ -3,7 +3,7 @@ package hardware.io_device;
 import hardware.cpu.CPU;
 import hardware.memory.Memory;
 import main.MiniOSUtil;
-import os.SystemCall;
+import operating_system.SystemCall;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,4 +1,4 @@
-package os;
+package operating_system;
 
 import hardware.cpu.CPU;
 import hardware.memory.Memory;

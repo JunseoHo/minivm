@@ -3,8 +3,8 @@ package main;
 import bios.BIOS;
 import hardware.cpu.CPU;
 import hardware.memory.Memory;
-import os.MiniOS;
-import os.SystemCall;
+import operating_system.MiniOS;
+import operating_system.SystemCall;
 
 public class Main {
 

@@ -1,10 +1,10 @@
-package os;
+package operating_system;
 
 import hardware.cpu.CPU;
 import hardware.memory.Memory;
-import os.file_manager.FileManager;
-import os.memory_manager.MemoryManager;
-import os.process_manager.ProcessManager;
+import operating_system.file_manager.FileManager;
+import operating_system.memory_manager.MemoryManager;
+import operating_system.process_manager.ProcessManager;
 
 import java.util.Scanner;
 

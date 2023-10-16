@@ -1,7 +1,7 @@
-package os.process_manager;
+package operating_system.process_manager;
 
 import hardware.cpu.Context;
-import os.memory_manager.Page;
+import operating_system.memory_manager.Page;
 
 public class Process {
 

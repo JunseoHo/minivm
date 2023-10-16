@@ -2,7 +2,7 @@ package bios;
 
 import hardware.cpu.CPU;
 import hardware.memory.Memory;
-import os.SystemCall;
+import operating_system.SystemCall;
 
 public class BIOS implements Runnable {
     // Computing resources

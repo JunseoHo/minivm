@@ -1,4 +1,4 @@
 package hardware.cpu;
 
-public class CPU {
+public class Timer {
 }

@@ -1,9 +1,9 @@
-package os.process_manager;
+package operating_system.process_manager;
 
 import hardware.cpu.CPU;
 import hardware.cpu.Context;
-import os.memory_manager.MemoryManager;
-import os.memory_manager.Page;
+import operating_system.memory_manager.MemoryManager;
+import operating_system.memory_manager.Page;
 
 import java.util.LinkedList;
 import java.util.List;

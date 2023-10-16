@@ -1,6 +1,6 @@
 package hardware.io_device;
 
-import os.SystemCall;
+import operating_system.SystemCall;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;

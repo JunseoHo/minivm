@@ -1,4 +1,4 @@
-package os.file_manager;
+package operating_system.file_manager;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -12,7 +12,7 @@ import java.util.*;
 public class FileManager {
     // Attributes
     private static final String FILE_INDEX_PATH = "file_index.json";
-    private static final String STORAGE_PATH = "storage";
+    private static final String STORAGE_PATH = "disk_image";
     private MiniOSFile currentDir = null;
 
     public FileManager() {
