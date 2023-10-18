@@ -2,9 +2,11 @@ package hardware;
 
 import common.CircularQueue;
 import common.Component;
-import os.OS;
+import common.Utils;
 import os.SystemCall;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 
 public class CPU extends Component<HWInterrupt> implements Runnable {
@@ -18,15 +20,14 @@ public class CPU extends Component<HWInterrupt> implements Runnable {
     private long IR_OPCODE = 0;
     private long IR_OPERAND_L = 0;
     private long IR_OPERAND_R = 0;
-    private long STAT = 0;
-    private long INTR = 0;
     // general-purpose registers
     private long AC = 0;
     // segment registers
     private long CS = 0;
     private long DS = 0;
     // components
-    private Timer timer;
+    private boolean tasking = false;
+    private Timer timer = new Timer();
     private CircularQueue<HWInterrupt> interruptQueue = new CircularQueue<>(100);
     private HWInterrupt interrupt;
 
@@ -49,6 +50,38 @@ public class CPU extends Component<HWInterrupt> implements Runnable {
         this.systemCall = systemCall;
     }
 
+    public List<Object> getContext() {
+        List<Object> context = new ArrayList<>();
+        context.add(PC);
+        context.add(MAR);
+        context.add(MBR);
+        context.add(IR_ADDRESSING_MODE);
+        context.add(IR_OPCODE);
+        context.add(IR_OPERAND_L);
+        context.add(IR_OPERAND_R);
+        context.add(AC);
+        context.add(CS);
+        context.add(DS);
+        context.add(interruptQueue);
+        context.add(interrupt);
+        return context;
+    }
+
+    public void setContext(List<Object> context) {
+        PC = (long) context.get(0);
+        MAR = (long) context.get(1);
+        MBR = (long) context.get(2);
+        IR_ADDRESSING_MODE = (long) context.get(3);
+        IR_OPCODE = (long) context.get(4);
+        IR_OPERAND_L = (long) context.get(5);
+        IR_OPERAND_R = (long) context.get(6);
+        AC = (long) context.get(7);
+        CS = (long) context.get(8);
+        DS = (long) context.get(9);
+        interruptQueue = (CircularQueue<HWInterrupt>) context.get(10);
+        interrupt = (HWInterrupt) context.get(11);
+    }
+
     @Override
     public void run() {
         if (!powerOnSelfTest()) {
@@ -56,7 +89,9 @@ public class CPU extends Component<HWInterrupt> implements Runnable {
             return;
         } else System.out.println("POST OK.");
         systemCall.run();
+        new Thread(timer).start();
         while (true) {
+            if (!tasking) continue;
             fetch();
             decode();
             execute();
@@ -64,8 +99,12 @@ public class CPU extends Component<HWInterrupt> implements Runnable {
         }
     }
 
+    public void switchTasking() {
+        tasking = !tasking;
+    }
+
     private void fetch() {
-        send(new HWInterrupt("Memory", 0x03, MAR = PC++));
+        send(new HWInterrupt("Memory", 0x03, MAR = CS + (PC++)));
         interrupt = receive();
         if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
         else if (interrupt.id == 0x04) MBR = interrupt.values[0];
@@ -79,6 +118,7 @@ public class CPU extends Component<HWInterrupt> implements Runnable {
     }
 
     private void execute() {
+        System.out.println((CS + PC) + " " + IR_OPCODE + " " + IR_OPCODE + " " + IR_OPERAND_L + " " + IR_OPERAND_R);
         switch ((int) IR_OPCODE) {
             case 0x00 -> halt();
             case 0x01 -> load();
@@ -183,7 +223,27 @@ public class CPU extends Component<HWInterrupt> implements Runnable {
         while (!interruptQueue.isEmpty()) {
             interrupt = interruptQueue.dequeue();
             switch (interrupt.id) {
+                case 0x08 -> {
+                    systemCall.switchContext();
+                    timer.init();
+                }
+            }
+        }
+    }
 
+    private class Timer implements Runnable {
+
+        private int sec = 0;
+
+        public void init() {
+            sec = 0;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                if (++sec > 2) interruptQueue.enqueue(new HWInterrupt("CPU", 0x08));
+                if (!Utils.sleep(500)) return;
             }
         }
     }

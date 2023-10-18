@@ -10,4 +10,6 @@ public interface SystemCall {
     void associate(IODevice ioDevice);
 
     void run();
+
+    void switchContext();
 }

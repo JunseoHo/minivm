@@ -36,6 +36,10 @@ public class Memory extends IODevice {
         else memory[addr] = val;
     }
 
+    public int size(){
+        return size;
+    }
+
     @Override
     public void handleInterrupt() {
         HWInterrupt interrupt;

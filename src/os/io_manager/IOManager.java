@@ -10,4 +10,9 @@ public class IOManager extends OSModule {
     public void run() {
 
     }
+
+    @Override
+    public void handleInterrupt() {
+
+    }
 }

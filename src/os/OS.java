@@ -5,10 +5,13 @@ import hardware.CPU;
 import hardware.Memory;
 import hardware.io_device.IODevice;
 import hardware.storage.Storage;
+import os.file_manager.File;
 import os.file_manager.FileManager;
+import os.file_manager.FileType;
 import os.io_manager.IOManager;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
+import os.process_manager.Process;
 
 public class OS implements SystemCall {
 
@@ -48,10 +51,28 @@ public class OS implements SystemCall {
 
     @Override
     public void run() {
-        System.out.println("OS run.");
+        // start
+        System.out.println("OS start.");
         new Thread(processManager).start();
         new Thread(memoryManager).start();
         new Thread(fileManager).start();
         new Thread(ioManager).start();
+        File file = new File(FileType.EXECUTABLE);
+        file.addRecord(67108865);
+        file.addRecord(67108866);
+        file.addRecord(67108867);
+        file.addRecord(67108868);
+        file.addRecord(67108869);
+        file.addRecord(402653185);
+        ProcessManager pm = (ProcessManager) processManager;
+        pm.newProcess(file);
+        pm.newProcess(file);
+        pm.newProcess(file);
+    }
+
+    @Override
+    public void switchContext() {
+        ProcessManager processManager = (ProcessManager) this.processManager;
+        processManager.switchContext();
     }
 }
