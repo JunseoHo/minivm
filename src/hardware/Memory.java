@@ -1,7 +1,5 @@
 package hardware;
 
-import common.Bus;
-import hardware.interrupt.IOInterrupt;
 import hardware.io_device.IODevice;
 
 public class Memory extends IODevice {
@@ -26,11 +24,9 @@ public class Memory extends IODevice {
     }
 
     @Override
-    public synchronized long read(int addr) {
-        if (addr < 0 || addr > size - 1) {
-            send(null);
-            return 0;
-        } else return memory[addr];
+    public synchronized void read(int addr) {
+        if (addr < 0 || addr > size - 1) send(new IOInterrupt("CPU", 0x40));
+        else send(new IOInterrupt("CPU", 0x04, memory[addr]));
     }
 
     @Override
@@ -45,6 +41,7 @@ public class Memory extends IODevice {
         if ((interrupt = receive()) != null) {
             switch (interrupt.id) {
                 case 0x00 -> send(new IOInterrupt("CPU", 1));
+                case 0x03 -> read((int) interrupt.value);
             }
         }
     }

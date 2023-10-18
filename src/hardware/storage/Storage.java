@@ -1,6 +1,6 @@
 package hardware.storage;
 
-import hardware.interrupt.IOInterrupt;
+import hardware.IOInterrupt;
 import hardware.io_device.IODevice;
 
 import java.io.*;
@@ -19,11 +19,10 @@ public class Storage extends IODevice {
     }
 
     @Override
-    public synchronized long read(int addr) {
+    public synchronized void read(int addr) {
         if (addr < 0 || addr > size - 1) {
             send(null);
-            return 0;
-        } else return storage.get(addr);
+        }
     }
 
     @Override

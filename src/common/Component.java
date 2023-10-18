@@ -1,6 +1,6 @@
 package common;
 
-import hardware.interrupt.IOInterrupt;
+import java.util.List;
 
 public class Component<T extends Event> {
 
@@ -19,6 +19,16 @@ public class Component<T extends Event> {
     }
 
     protected T receive() {
+        T o;
+        while ((o = tryReceive()) == null) ;
+        return o;
+    }
+
+    protected List<T> receiveAll() {
+        return bus.receiveAll(name);
+    }
+
+    protected T tryReceive() {
         return bus.receive(name);
     }
 

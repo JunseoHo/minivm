@@ -3,8 +3,7 @@ package hardware.io_device;
 public class OutputDevice extends IODevice {
 
     @Override
-    public long read(int addr) {
-        return 0;
+    public void read(int addr){
     }
 
     @Override

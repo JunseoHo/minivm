@@ -1,9 +1,8 @@
 package hardware;
 
-import common.Bus;
 import common.Component;
-import hardware.interrupt.IOInterrupt;
 
+import java.util.List;
 import java.util.Timer;
 
 public class CPU extends Component<IOInterrupt> implements Runnable {
@@ -27,8 +26,8 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     private IOInterrupt interrupt;
 
     private boolean powerOnSelfTest() {
-        if (!send(new IOInterrupt("Memory", 0))
-                || !send(new IOInterrupt("Storage", 0))) {
+        if (!send(new IOInterrupt("Memory", 0x00))
+                || !send(new IOInterrupt("Storage", 0x00))) {
             System.err.println("bus error.");
             return false;
         }
@@ -51,19 +50,33 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
             fetch();
             decode();
             execute();
-            checkInterrupt();
+            handleInterrupt();
         }
     }
 
     private void fetch() {
+        send(new IOInterrupt("Memory", 0x03, MAR = PC++));
+        interrupt = receive();
+        if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
+        else if (interrupt.id == 0x04) MBR = interrupt.value;
     }
 
     private void decode() {
+        IR_ADDRESSING_MODE = MBR >> 30;
+        IR_OPCODE = (MBR & 0x3C000000) >> 26;
+        IR_OPERAND_L = (MBR & 0x3FFE000) >> 13;
+        IR_OPERAND_R = MBR & 0x1FFF;
     }
 
     private void execute() {
+        System.out.println(IR_ADDRESSING_MODE + " " + IR_OPCODE + " " + IR_OPERAND_L + " " + IR_OPERAND_R);
     }
 
-    private void checkInterrupt() {
+    private void handleInterrupt() {
+        for (IOInterrupt interrupt : receiveAll()) {
+            switch (interrupt.id) {
+
+            }
+        }
     }
 }

@@ -3,7 +3,7 @@ package main;
 import common.Bus;
 import hardware.CPU;
 import hardware.Memory;
-import hardware.interrupt.IOInterrupt;
+import hardware.IOInterrupt;
 import hardware.io_device.IODevice;
 import hardware.io_device.InputDevice;
 import hardware.io_device.OutputDevice;

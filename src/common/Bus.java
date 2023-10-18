@@ -39,4 +39,10 @@ public class Bus<T extends Event> {
         return queue.dequeue();
     }
 
+    public List<T> receiveAll(String name) {
+        List<T> events = new ArrayList<>();
+        CircularQueue<T> queue = components.get(name);
+        while (!queue.isEmpty()) events.add(queue.dequeue());
+        return events;
+    }
 }
