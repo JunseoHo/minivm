@@ -1,6 +1,6 @@
 package hardware.storage;
 
-import hardware.ControlBus;
+import hardware.interrupt.IOInterrupt;
 import hardware.io_device.IODevice;
 
 import java.io.*;
@@ -21,14 +21,14 @@ public class Storage extends IODevice {
     @Override
     public synchronized long read(int addr) {
         if (addr < 0 || addr > size - 1) {
-            sendInterrupt(0);
+            send(null);
             return 0;
         } else return storage.get(addr);
     }
 
     @Override
     public synchronized void write(int addr, long val) {
-        if (addr < 0 || addr > size - 1) sendInterrupt(0);
+        if (addr < 0 || addr > size - 1) send(null);
         else storage.set(addr, val);
     }
 
@@ -44,9 +44,19 @@ public class Storage extends IODevice {
     }
 
     @Override
-    public void run() {
-
+    public void handleInterrupt() {
+        IOInterrupt interrupt;
+        if ((interrupt = receive()) != null) {
+            switch (interrupt.id) {
+                case 0x00 -> send(new IOInterrupt("CPU", 1));
+            }
+        }
     }
 
-
+    @Override
+    public void run() {
+        while (true) {
+            handleInterrupt();
+        }
+    }
 }

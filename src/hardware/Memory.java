@@ -1,5 +1,7 @@
 package hardware;
 
+import common.Bus;
+import hardware.interrupt.IOInterrupt;
 import hardware.io_device.IODevice;
 
 public class Memory extends IODevice {
@@ -10,8 +12,6 @@ public class Memory extends IODevice {
     private static final int DEFAULT_SIZE = 1024;
     private int size = 0;
     private long[] memory;
-    // associations
-    private ControlBus controlBus;
 
     public Memory() {
         this(DEFAULT_SIZE);
@@ -28,20 +28,32 @@ public class Memory extends IODevice {
     @Override
     public synchronized long read(int addr) {
         if (addr < 0 || addr > size - 1) {
-            controlBus.send(0);
+            send(null);
             return 0;
         } else return memory[addr];
     }
 
     @Override
     public synchronized void write(int addr, long val) {
-        if (addr < 0 || addr > size - 1) sendInterrupt(0);
+        if (addr < 0 || addr > size - 1) send(null);
         else memory[addr] = val;
     }
 
     @Override
-    public void run() {
+    public void handleInterrupt() {
+        IOInterrupt interrupt;
+        if ((interrupt = receive()) != null) {
+            switch (interrupt.id) {
+                case 0x00 -> send(new IOInterrupt("CPU", 1));
+            }
+        }
+    }
 
+    @Override
+    public void run() {
+        while (true) {
+            handleInterrupt();
+        }
     }
 
 }

@@ -12,6 +12,11 @@ public class InputDevice extends IODevice {
     }
 
     @Override
+    public void handleInterrupt() {
+
+    }
+
+    @Override
     public void run() {
 
     }

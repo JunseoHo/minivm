@@ -35,7 +35,6 @@ public class CircularQueue<T> {
         queue.set(rear++, o);
         if (rear == queueSize) rear = 0;
         ++currentSize;
-        System.out.println("Enqueue -> " + o);
         return true;
     }
 
