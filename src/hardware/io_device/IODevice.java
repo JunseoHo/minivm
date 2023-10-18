@@ -2,7 +2,7 @@ package hardware.io_device;
 
 import hardware.ControlBus;
 
-public abstract class IODevice {
+public abstract class IODevice implements Runnable {
 
     private ControlBus controlBus;
 
@@ -13,5 +13,9 @@ public abstract class IODevice {
     protected void sendInterrupt(int interruptId) {
         controlBus.send(interruptId);
     }
+
+    public abstract long read(int addr);
+
+    public abstract void write(int addr, long val);
 
 }

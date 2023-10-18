@@ -11,7 +11,7 @@ public class ControlBus implements Runnable {
     // associations
     private CPU cpu;
 
-    public ControlBus(){
+    public ControlBus() {
         bus = new CircularQueue<>();
     }
 
@@ -25,10 +25,7 @@ public class ControlBus implements Runnable {
 
     @Override
     public void run() {
-        if (cpu == null)
-            System.err.println("control bus is not associated with the CPU.");
-        else while (true) {
-            while (!bus.isEmpty()) cpu.maskInterrupt(bus.dequeue());
-        }
+        if (cpu == null) System.err.println("control bus is not associated with the CPU.");
+        else while (true) while (!bus.isEmpty()) cpu.maskInterrupt(bus.dequeue());
     }
 }

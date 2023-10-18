@@ -1,6 +1,6 @@
 package hardware;
 
-public class CPU {
+public class CPU implements Runnable {
 
     private int INTR = 0;
 
@@ -8,4 +8,8 @@ public class CPU {
         INTR = INTR | (1 << interruptId);
     }
 
+    @Override
+    public void run() {
+
+    }
 }

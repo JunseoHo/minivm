@@ -18,6 +18,7 @@ public class Storage extends IODevice {
         importDiskImage();
     }
 
+    @Override
     public synchronized long read(int addr) {
         if (addr < 0 || addr > size - 1) {
             sendInterrupt(0);
@@ -25,6 +26,7 @@ public class Storage extends IODevice {
         } else return storage.get(addr);
     }
 
+    @Override
     public synchronized void write(int addr, long val) {
         if (addr < 0 || addr > size - 1) sendInterrupt(0);
         else storage.set(addr, val);
@@ -39,6 +41,11 @@ public class Storage extends IODevice {
             System.err.println("failed to import disk image.");
             return false;
         }
+    }
+
+    @Override
+    public void run() {
+
     }
 
 
