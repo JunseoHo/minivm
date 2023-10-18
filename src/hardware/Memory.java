@@ -21,12 +21,13 @@ public class Memory extends IODevice {
             size = DEFAULT_SIZE;
         }
         memory = new long[this.size = size];
+        memory[0] = 402653184;
     }
 
     @Override
     public synchronized void read(int addr) {
-        if (addr < 0 || addr > size - 1) send(new IOInterrupt("CPU", 0x40));
-        else send(new IOInterrupt("CPU", 0x04, memory[addr]));
+        if (addr < 0 || addr > size - 1) send(new HWInterrupt("CPU", 0x40));
+        else send(new HWInterrupt("CPU", 0x04, memory[addr]));
     }
 
     @Override
@@ -37,10 +38,10 @@ public class Memory extends IODevice {
 
     @Override
     public void handleInterrupt() {
-        IOInterrupt interrupt;
+        HWInterrupt interrupt;
         if ((interrupt = receive()) != null) {
             switch (interrupt.id) {
-                case 0x00 -> send(new IOInterrupt("CPU", 1));
+                case 0x00 -> send(new HWInterrupt("CPU", 1));
                 case 0x03 -> read((int) interrupt.values[0]);
             }
         }

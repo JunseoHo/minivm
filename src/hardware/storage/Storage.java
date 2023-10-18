@@ -1,6 +1,6 @@
 package hardware.storage;
 
-import hardware.IOInterrupt;
+import hardware.HWInterrupt;
 import hardware.io_device.IODevice;
 
 import java.io.*;
@@ -44,10 +44,10 @@ public class Storage extends IODevice {
 
     @Override
     public void handleInterrupt() {
-        IOInterrupt interrupt;
+        HWInterrupt interrupt;
         if ((interrupt = receive()) != null) {
             switch (interrupt.id) {
-                case 0x00 -> send(new IOInterrupt("CPU", 1));
+                case 0x00 -> send(new HWInterrupt("CPU", 1));
             }
         }
     }

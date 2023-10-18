@@ -1,5 +1,7 @@
 package common;
 
+import hardware.CPU;
+
 import java.util.List;
 
 public class Component<T extends Event> {

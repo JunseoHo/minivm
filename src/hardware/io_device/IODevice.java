@@ -1,9 +1,9 @@
 package hardware.io_device;
 
 import common.Component;
-import hardware.IOInterrupt;
+import hardware.HWInterrupt;
 
-public abstract class IODevice extends Component<IOInterrupt> implements Runnable {
+public abstract class IODevice extends Component<HWInterrupt> implements Runnable {
 
     public abstract void read(int addr);
 

@@ -4,13 +4,13 @@ import os.OSModule;
 
 public class FileManager extends OSModule {
 
+    @Override
+    public void run() {
 
-    public FileManager() {
-        super("FileManager");
     }
 
     @Override
-    public void run() {
+    public void handleInterrupt() {
 
     }
 }

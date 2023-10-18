@@ -6,10 +6,6 @@ public class IOManager extends OSModule {
 
     private IODeviceVector ioDeviceVector;
 
-    public IOManager() {
-        super("IOManager");
-    }
-
     @Override
     public void run() {
 

@@ -5,6 +5,7 @@
   <li>Summary</li>
   <li>Instruction set</li>
   <li>Hardware interrupt</li>
+  <li>Software interrupt</li>
   <li>Module structure</li>
 </ol>
 <h1>Summary</h1>
@@ -23,6 +24,8 @@ This project is divided into three major layers: hardware layer, kernel layer an
 
 <h1>Hardware interrupt</h1>
 Following interrupts are shared by all hardware.<br>
+0x00 ~ 0x39 are signal, request, acknowledgement.<br>
+0x40 ~ 0xFF are hardware exception.<br>
 
 |  ID  | Mnemonic | Name                                  | Description                  |
 |:----:|:--------:|:--------------------------------------|:-----------------------------|
@@ -35,6 +38,18 @@ Following interrupts are shared by all hardware.<br>
 | 0x06 |   APW    | Acknowledgement processor write       | Positive response for RPW    |
 | 0x07 |   HLT    | halt                                  | terminated running process   |
 | 0x40 |   SEG    | Segmentation fault                    | Bad memory access            |
+
+<h1>Software interrupt</h1>
+Following interrupts are shared by all OS modules.<br>
+0x00 ~ 0x31 are process manager interrupts.<br>
+0x32 ~ 0x63 are memory manager interrupts.<br>
+0x64 ~ 0x95 are file manager interrupts.<br>
+0x96 ~ 0xFF are io manager interrupts.<br>
+
+|  ID  | Mnemonic | Name           | Description                            |
+|:----:|:--------:|:---------------|:---------------------------------------|
+| 0x00 |   SCX    | Switch context | Request switching context of CPU       |
+
 
 <h1>Module structure</h1>
 

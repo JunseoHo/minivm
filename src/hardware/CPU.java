@@ -2,10 +2,14 @@ package hardware;
 
 import common.CircularQueue;
 import common.Component;
+import os.OS;
+import os.SystemCall;
 
 import java.util.Timer;
 
-public class CPU extends Component<IOInterrupt> implements Runnable {
+public class CPU extends Component<HWInterrupt> implements Runnable {
+    // associations
+    private SystemCall systemCall;
     // special-purpose registers
     private long PC = 0;
     private long MAR = 0;
@@ -23,12 +27,12 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     private long DS = 0;
     // components
     private Timer timer;
-    private CircularQueue<IOInterrupt> interruptQueue = new CircularQueue<>(100);
-    private IOInterrupt interrupt;
+    private CircularQueue<HWInterrupt> interruptQueue = new CircularQueue<>(100);
+    private HWInterrupt interrupt;
 
     private boolean powerOnSelfTest() {
-        if (!send(new IOInterrupt("Memory", 0x00))
-                || !send(new IOInterrupt("Storage", 0x00))) {
+        if (!send(new HWInterrupt("Memory", 0x00))
+                || !send(new HWInterrupt("Storage", 0x00))) {
             System.err.println("bus error.");
             return false;
         }
@@ -41,12 +45,17 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
         return true;
     }
 
+    public void associate(SystemCall systemCall) {
+        this.systemCall = systemCall;
+    }
+
     @Override
     public void run() {
         if (!powerOnSelfTest()) {
             System.err.println("POST failed.");
             return;
         } else System.out.println("POST OK.");
+        systemCall.run();
         while (true) {
             fetch();
             decode();
@@ -56,7 +65,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     }
 
     private void fetch() {
-        send(new IOInterrupt("Memory", 0x03, MAR = PC++));
+        send(new HWInterrupt("Memory", 0x03, MAR = PC++));
         interrupt = receive();
         if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
         else if (interrupt.id == 0x04) MBR = interrupt.values[0];
@@ -86,13 +95,13 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     }
 
     private void halt() {
-        interruptQueue.enqueue(new IOInterrupt("CPU", 0x07));
+        interruptQueue.enqueue(new HWInterrupt("CPU", 0x07));
     }
 
     private void load() {
         if (IR_ADDRESSING_MODE == 0x00) AC = IR_OPERAND_R;
         else if (IR_ADDRESSING_MODE == 0x01) {
-            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            send(new HWInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
             interrupt = receive(0x04, 0x40);
             if (interrupt.id == 0x04) AC = interrupt.values[0];
             else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
@@ -100,7 +109,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     }
 
     private void store() {
-        send(new IOInterrupt("Memory", 0x05, DS + IR_OPERAND_R, AC));
+        send(new HWInterrupt("Memory", 0x05, DS + IR_OPERAND_R, AC));
         interrupt = receive(0x06, 0x40);
         if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
     }
@@ -108,7 +117,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     private void add() {
         if (IR_ADDRESSING_MODE == 0x00) AC += IR_OPERAND_R;
         else if (IR_ADDRESSING_MODE == 0x01) {
-            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            send(new HWInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
             interrupt = receive(0x04, 0x40);
             if (interrupt.id == 0x04) AC += interrupt.values[0];
             else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
@@ -118,7 +127,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     private void subtract() {
         if (IR_ADDRESSING_MODE == 0x00) AC -= IR_OPERAND_R;
         else if (IR_ADDRESSING_MODE == 0x01) {
-            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            send(new HWInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
             interrupt = receive(0x04, 0x40);
             if (interrupt.id == 0x04) AC -= interrupt.values[0];
             else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
@@ -128,7 +137,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     private void multiply() {
         if (IR_ADDRESSING_MODE == 0x00) AC *= IR_OPERAND_R;
         else if (IR_ADDRESSING_MODE == 0x01) {
-            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            send(new HWInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
             interrupt = receive(0x04, 0x40);
             if (interrupt.id == 0x04) AC *= interrupt.values[0];
             else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
@@ -138,7 +147,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     private void jump() {
         if (IR_ADDRESSING_MODE == 0x00) PC = IR_OPERAND_R;
         else if (IR_ADDRESSING_MODE == 0x01) {
-            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            send(new HWInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
             interrupt = receive(0x04, 0x40);
             if (interrupt.id == 0x04) PC = interrupt.values[0];
             else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
@@ -150,7 +159,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     }
 
     private void intr() {
-        interruptQueue.enqueue(new IOInterrupt("CPU", (int) IR_OPERAND_L, IR_OPERAND_R));
+        interruptQueue.enqueue(new HWInterrupt("CPU", (int) IR_OPERAND_L, IR_OPERAND_R));
     }
 
     private void read() {
@@ -161,7 +170,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
 
     }
 
-    private IOInterrupt receive(int... interruptIds) {
+    private HWInterrupt receive(int... interruptIds) {
         while (true) {
             interrupt = receive();
             for (int interruptId : interruptIds) if (interrupt.id == interruptId) return interrupt;
@@ -170,7 +179,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     }
 
     private void handleInterrupt() {
-        for (IOInterrupt interrupt : receiveAll()) interruptQueue.enqueue(interrupt);
+        for (HWInterrupt interrupt : receiveAll()) interruptQueue.enqueue(interrupt);
         while (!interruptQueue.isEmpty()) {
             interrupt = interruptQueue.dequeue();
             switch (interrupt.id) {
