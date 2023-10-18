@@ -1,13 +1,11 @@
 package hardware;
 
-import operating_system.OperatingSystem;
-
 public class CPU {
 
-    private OperatingSystem.InterruptHandler interruptHandler;
+    private int INTR = 0;
 
-    private class Timer {
-
+    public void maskInterrupt(int interruptId) {
+        INTR = INTR | (1 << interruptId);
     }
 
 }

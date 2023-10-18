@@ -1,4 +1,4 @@
-package operating_system;
+package os;
 
 public interface SystemCall {
 }

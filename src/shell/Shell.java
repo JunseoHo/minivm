@@ -1,9 +1,13 @@
 package shell;
 
-import operating_system.SystemCall;
+import os.SystemCall;
 
 public class Shell {
 
     private SystemCall systemCall;
+
+    public Shell(SystemCall systemCall) {
+        this.systemCall = systemCall;
+    }
 
 }
