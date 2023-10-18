@@ -29,3 +29,7 @@ Following interrupts are shared by all hardware.<br>
 |  0x00  |    SHC     | **S**ignal **H**ealth **C**heck                | Check status of hardware.  |
 |  0x01  |    AHC     | **A**cknowledge **H**ealth **C**heck           | Positive response for SHC  |
 |  0x02  |    NHC     | **N**egative Acknowledge **H**ealth **C**heck  | Negative response for SHC  |
+
+<h1>Module structure</h1>
+
+![module_structure](./image/module_structure.png)
