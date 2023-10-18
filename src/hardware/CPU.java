@@ -1,8 +1,8 @@
 package hardware;
 
+import common.CircularQueue;
 import common.Component;
 
-import java.util.List;
 import java.util.Timer;
 
 public class CPU extends Component<IOInterrupt> implements Runnable {
@@ -23,6 +23,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     private long DS = 0;
     // components
     private Timer timer;
+    private CircularQueue<IOInterrupt> interruptQueue = new CircularQueue<>(100);
     private IOInterrupt interrupt;
 
     private boolean powerOnSelfTest() {
@@ -58,7 +59,7 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
         send(new IOInterrupt("Memory", 0x03, MAR = PC++));
         interrupt = receive();
         if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
-        else if (interrupt.id == 0x04) MBR = interrupt.value;
+        else if (interrupt.id == 0x04) MBR = interrupt.values[0];
     }
 
     private void decode() {
@@ -69,11 +70,109 @@ public class CPU extends Component<IOInterrupt> implements Runnable {
     }
 
     private void execute() {
-        System.out.println(IR_ADDRESSING_MODE + " " + IR_OPCODE + " " + IR_OPERAND_L + " " + IR_OPERAND_R);
+        switch ((int) IR_OPCODE) {
+            case 0x00 -> halt();
+            case 0x01 -> load();
+            case 0x02 -> store();
+            case 0x03 -> add();
+            case 0x04 -> subtract();
+            case 0x05 -> multiply();
+            case 0x06 -> jump();
+            case 0x07 -> jumpZero();
+            case 0x08 -> read();
+            case 0x09 -> write();
+            case 0x0A -> intr();
+        }
+    }
+
+    private void halt() {
+        interruptQueue.enqueue(new IOInterrupt("CPU", 0x07));
+    }
+
+    private void load() {
+        if (IR_ADDRESSING_MODE == 0x00) AC = IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == 0x01) {
+            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            interrupt = receive(0x04, 0x40);
+            if (interrupt.id == 0x04) AC = interrupt.values[0];
+            else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
+        }
+    }
+
+    private void store() {
+        send(new IOInterrupt("Memory", 0x05, DS + IR_OPERAND_R, AC));
+        interrupt = receive(0x06, 0x40);
+        if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
+    }
+
+    private void add() {
+        if (IR_ADDRESSING_MODE == 0x00) AC += IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == 0x01) {
+            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            interrupt = receive(0x04, 0x40);
+            if (interrupt.id == 0x04) AC += interrupt.values[0];
+            else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
+        }
+    }
+
+    private void subtract() {
+        if (IR_ADDRESSING_MODE == 0x00) AC -= IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == 0x01) {
+            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            interrupt = receive(0x04, 0x40);
+            if (interrupt.id == 0x04) AC -= interrupt.values[0];
+            else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
+        }
+    }
+
+    private void multiply() {
+        if (IR_ADDRESSING_MODE == 0x00) AC *= IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == 0x01) {
+            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            interrupt = receive(0x04, 0x40);
+            if (interrupt.id == 0x04) AC *= interrupt.values[0];
+            else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
+        }
+    }
+
+    private void jump() {
+        if (IR_ADDRESSING_MODE == 0x00) PC = IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == 0x01) {
+            send(new IOInterrupt("Memory", 0x03, DS + IR_OPERAND_R));
+            interrupt = receive(0x04, 0x40);
+            if (interrupt.id == 0x04) PC = interrupt.values[0];
+            else if (interrupt.id == 0x40) System.err.println("Segmentation fault.");
+        }
+    }
+
+    private void jumpZero() {
+        if (AC == 0) jump();
+    }
+
+    private void intr() {
+        interruptQueue.enqueue(new IOInterrupt("CPU", (int) IR_OPERAND_L, IR_OPERAND_R));
+    }
+
+    private void read() {
+
+    }
+
+    private void write() {
+
+    }
+
+    private IOInterrupt receive(int... interruptIds) {
+        while (true) {
+            interrupt = receive();
+            for (int interruptId : interruptIds) if (interrupt.id == interruptId) return interrupt;
+            interruptQueue.enqueue(interrupt);
+        }
     }
 
     private void handleInterrupt() {
-        for (IOInterrupt interrupt : receiveAll()) {
+        for (IOInterrupt interrupt : receiveAll()) interruptQueue.enqueue(interrupt);
+        while (!interruptQueue.isEmpty()) {
+            interrupt = interruptQueue.dequeue();
             switch (interrupt.id) {
 
             }

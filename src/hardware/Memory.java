@@ -41,7 +41,7 @@ public class Memory extends IODevice {
         if ((interrupt = receive()) != null) {
             switch (interrupt.id) {
                 case 0x00 -> send(new IOInterrupt("CPU", 1));
-                case 0x03 -> read((int) interrupt.value);
+                case 0x03 -> read((int) interrupt.values[0]);
             }
         }
     }

@@ -4,7 +4,7 @@
 <ol type='I'>
   <li>Summary</li>
   <li>Instruction set</li>
-  <li>General hardware interrupt</li>
+  <li>Hardware interrupt</li>
   <li>Module structure</li>
 </ol>
 <h1>Summary</h1>
@@ -21,17 +21,20 @@ This project is divided into three major layers: hardware layer, kernel layer an
 
 <h1>Instruction set</h1>
 
-<h1>General hardware interrupt</h1>
+<h1>Hardware interrupt</h1>
 Following interrupts are shared by all hardware.<br>
 
-|  ID  | Mnemonic | Name                                              | Description                 |
-|:----:|:--------:|:--------------------------------------------------|:----------------------------|
-| 0x00 |   SHC    | **S**ignal **H**ealth **C**heck                   | Check status of hardware.   |
-| 0x01 |   AHC    | **A**cknowledgement **H**ealth **C**heck          | Positive response for SHC   |
-| 0x02 |   NHC    | **N**egative acknowledgement **H**ealth **C**heck | Negative response for SHC   |
-| 0x03 |   RPR    | **R**equest **P**rocessor **R**ead                | Read request from processor |
-| 0x04 |   APR    | **A**cknowledgement **P**rocessor **R**ead        | Positive response for RPR   |
-| 0x40 |   SEG    | **SEG**mentation fault                            | Bad memory access           |
+|  ID  | Mnemonic | Name                                  | Description                  |
+|:----:|:--------:|:--------------------------------------|:-----------------------------|
+| 0x00 |   SHC    | Signal health check                   | Check status of hardware     |
+| 0x01 |   AHC    | Acknowledgement health check          | Positive response for SHC    |
+| 0x02 |   NHC    | Negative acknowledgement health check | Negative response for SHC    |
+| 0x03 |   RPR    | Request processor read                | Read request from processor  |
+| 0x04 |   APR    | Acknowledgement processor read        | Positive response for RPR    |
+| 0x05 |   RPW    | Request processor write               | Write request from processor |
+| 0x06 |   APW    | Acknowledgement processor write       | Positive response for RPW    |
+| 0x07 |   HLT    | halt                                  | terminated running process   |
+| 0x40 |   SEG    | Segmentation fault                    | Bad memory access            |
 
 <h1>Module structure</h1>
 
