@@ -1,9 +1,9 @@
 package hardware.io_device;
 
 import common.bus.Component;
-import hardware.HWInterrupt;
+import hardware.HIQ;
 
-public abstract class IODevice extends Component<HWInterrupt> implements Runnable {
+public abstract class IODevice extends Component<HIQ> implements Runnable {
 
     public abstract void read(int addr);
 

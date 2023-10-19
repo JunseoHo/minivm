@@ -1,9 +1,10 @@
 package main;
 
 import common.bus.Bus;
-import hardware.CPU;
+import hardware.cpu.CPU;
+import hardware.HWName;
 import hardware.Memory;
-import hardware.HWInterrupt;
+import hardware.HIQ;
 import hardware.io_device.IODevice;
 import hardware.io_device.InputDevice;
 import hardware.io_device.OutputDevice;
@@ -11,20 +12,20 @@ import hardware.storage.Storage;
 import os.OS;
 import os.SystemCall;
 
-public class Main {
+public class MiniVM {
 
     public static void main(String[] args) {
         // create hardware
-        Bus<HWInterrupt> controlBus = new Bus();
+        Bus<HIQ> controlBus = new Bus();
         CPU cpu = new CPU();
         IODevice memory = new Memory();
         IODevice storage = new Storage();
         IODevice inputDevice = new InputDevice();
         IODevice outputDevice = new OutputDevice();
         // associate control bus with hardware
-        cpu.associate(controlBus, "CPU");
-        memory.associate(controlBus, "Memory");
-        storage.associate(controlBus, "Storage");
+        cpu.associate(controlBus, HWName.CPU);
+        memory.associate(controlBus, HWName.MEMORY);
+        storage.associate(controlBus, HWName.STORAGE);
         inputDevice.associate(controlBus, "InputDevice");
         outputDevice.associate(controlBus, "OutputDevice");
         // create os and associate with hardware

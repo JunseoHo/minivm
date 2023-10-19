@@ -1,7 +1,7 @@
 package os.process_manager;
 
 import common.CircularQueue;
-import hardware.CPU;
+import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 import os.OSModule;
 import os.SWInterrupt;
@@ -57,7 +57,7 @@ public class ProcessManager extends OSModule {
         public void admit(Process process) {
             if (runningProcess == null) {
                 runningProcess = process;
-                cpu.setContext(process.getContext());
+                cpu.restore(process.save());
                 cpu.switchTasking();
             } else readyQueue.enqueue(process);
         }
@@ -68,11 +68,11 @@ public class ProcessManager extends OSModule {
 
         public void switchContext() {
             if (readyQueue.isEmpty()) return;
-            runningProcess.setContext(cpu.getContext());
+            runningProcess.restore(cpu.save());
             readyQueue.enqueue(runningProcess);
             runningProcess = readyQueue.dequeue();
             System.out.println(runningProcess.getId());
-            cpu.setContext(runningProcess.getContext());
+            cpu.restore(runningProcess.save());
         }
 
     }

@@ -28,18 +28,18 @@ Following interrupts are shared by all hardware.<br>
 0x00 ~ 0x39 are signal, request, acknowledgement.<br>
 0x40 ~ 0xFF are hardware exception.<br>
 
-|  ID  | Mnemonic | Name                                  | Description                  |
-|:----:|:--------:|:--------------------------------------|:-----------------------------|
-| 0x00 |   SHC    | Signal health check                   | Check status of hardware     |
-| 0x01 |   AHC    | Acknowledgement health check          | Positive response for SHC    |
-| 0x02 |   NHC    | Negative acknowledgement health check | Negative response for SHC    |
-| 0x03 |   RPR    | Request processor read                | Read request from processor  |
-| 0x04 |   APR    | Acknowledgement processor read        | Positive response for RPR    |
-| 0x05 |   RPW    | Request processor write               | Write request from processor |
-| 0x06 |   APW    | Acknowledgement processor write       | Positive response for RPW    |
-| 0x07 |   HLT    | Halt                                  | terminated running process   |
-| 0x08 |   TSE    | Time slice expired                    | The timer has been alerted   |
-| 0x40 |   SEG    | Segmentation fault                    | Bad memory access            |
+|  ID  | Mnemonic | Description                     |
+|:----:|:--------:|:--------------------------------|
+| 0x00 |   STC    | State check                     | 
+| 0x01 |   STP    | State positive                  |
+| 0x02 |   STN    | State negative                  | 
+| 0x03 |   RPR    | Request processor read          | 
+| 0x04 |   APR    | Acknowledgement processor read  | 
+| 0x05 |   RPW    | Request processor write         | 
+| 0x06 |   APW    | Acknowledgement processor write |
+| 0x07 |   HLT    | Halt                            | 
+| 0x08 |   TSE    | Time slice expired              | 
+| 0x40 |   SEG    | Segmentation fault              | 
 
 <h1>Software interrupt</h1>
 Following interrupts are shared by all OS modules.<br>

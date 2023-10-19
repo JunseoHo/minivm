@@ -4,11 +4,10 @@ import hardware.io_device.IODevice;
 
 public class Memory extends IODevice {
 
-    // attributes
     private static final int MIN_SIZE = 128;
     private static final int MAX_SIZE = 8192;
     private static final int DEFAULT_SIZE = 1024;
-    private int size = 0;
+    private int size;
     private long[] memory;
 
     public Memory() {
@@ -16,46 +15,41 @@ public class Memory extends IODevice {
     }
 
     public Memory(int size) {
-        if (size < MIN_SIZE || size > MAX_SIZE) {
-            System.err.println("memory size is too large.");
-            size = DEFAULT_SIZE;
-        }
+        if (size < MIN_SIZE || size > MAX_SIZE) size = DEFAULT_SIZE;
         memory = new long[this.size = size];
-        memory[0] = 402653184;
     }
 
     @Override
     public synchronized void read(int addr) {
-        if (addr < 0 || addr > size - 1) send(new HWInterrupt("CPU", 0x40));
-        else send(new HWInterrupt("CPU", 0x04, memory[addr]));
+        if (addr < 0 || addr > size - 1) send(new HIQ(HWName.CPU, HIQ.SEGFAULT));
+        else send(new HIQ(HWName.CPU, HIQ.READ_RESPONSE, memory[addr]));
     }
 
     @Override
     public synchronized void write(int addr, long val) {
-        if (addr < 0 || addr > size - 1) send(null);
-        else memory[addr] = val;
-    }
-
-    public int size(){
-        return size;
+        if (addr < 0 || addr > size - 1) send(new HIQ(HWName.CPU, HIQ.SEGFAULT));
+        else send(new HIQ(HWName.CPU, HIQ.WRITE_RESPONSE, memory[addr] = val));
     }
 
     @Override
     public void handleInterrupt() {
-        HWInterrupt interrupt;
-        if ((interrupt = receive()) != null) {
-            switch (interrupt.id) {
-                case 0x00 -> send(new HWInterrupt("CPU", 1));
-                case 0x03 -> read((int) interrupt.values[0]);
+        HIQ intr;
+        if ((intr = receive()) != null) {
+            switch (intr.id) {
+                case HIQ.STAT_CHK -> send(new HIQ(HWName.CPU, HIQ.STAT_POS));
+                case HIQ.CPU_READ -> read((int) intr.values[0]);
+                case HIQ.CPU_WRITE -> write((int) intr.values[0], intr.values[1]);
             }
         }
     }
 
     @Override
     public void run() {
-        while (true) {
-            handleInterrupt();
-        }
+        while (true) handleInterrupt();
+    }
+
+    public int size() {
+        return size;
     }
 
 }

@@ -2,7 +2,7 @@ package os;
 
 import common.CircularQueue;
 import common.bus.Component;
-import hardware.CPU;
+import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 
 public abstract class OSModule extends Component<SWInterrupt> implements Runnable {
