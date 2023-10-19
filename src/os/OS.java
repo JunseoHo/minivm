@@ -1,6 +1,6 @@
 package os;
 
-import common.Bus;
+import common.bus.Bus;
 import hardware.CPU;
 import hardware.Memory;
 import hardware.io_device.IODevice;
@@ -11,7 +11,6 @@ import os.file_manager.FileType;
 import os.io_manager.IOManager;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
-import os.process_manager.Process;
 
 public class OS implements SystemCall {
 

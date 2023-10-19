@@ -1,6 +1,6 @@
 package main;
 
-import common.Bus;
+import common.bus.Bus;
 import hardware.CPU;
 import hardware.Memory;
 import hardware.HWInterrupt;
@@ -10,8 +10,6 @@ import hardware.io_device.OutputDevice;
 import hardware.storage.Storage;
 import os.OS;
 import os.SystemCall;
-import os.file_manager.File;
-import os.file_manager.FileType;
 
 public class Main {
 

@@ -1,13 +1,12 @@
 package hardware;
 
 import common.CircularQueue;
-import common.Component;
+import common.bus.Component;
 import common.Utils;
 import os.SystemCall;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
 
 public class CPU extends Component<HWInterrupt> implements Runnable {
     // associations
@@ -208,14 +207,6 @@ public class CPU extends Component<HWInterrupt> implements Runnable {
 
     private void write() {
 
-    }
-
-    private HWInterrupt receive(int... interruptIds) {
-        while (true) {
-            interrupt = receive();
-            for (int interruptId : interruptIds) if (interrupt.id == interruptId) return interrupt;
-            interruptQueue.enqueue(interrupt);
-        }
     }
 
     private void handleInterrupt() {

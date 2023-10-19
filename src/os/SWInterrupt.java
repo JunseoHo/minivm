@@ -1,6 +1,6 @@
 package os;
 
-import common.Event;
+import common.bus.Event;
 
 public class SWInterrupt extends Event {
 

@@ -1,5 +1,7 @@
 package common;
 
+import exception.QueueError;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,28 +30,30 @@ public class CircularQueue<T> {
     }
 
     public synchronized boolean enqueue(T o) {
-        if (isFull()) {
-            System.err.println("queue is full.");
+        try {
+            if (isFull()) throw new QueueError("Queue is full.");
+            queue.set(rear++, o);
+            if (rear == queueSize) rear = 0;
+            ++currentSize;
+            return true;
+        } catch (QueueError e) {
             return false;
         }
-        queue.set(rear++, o);
-        if (rear == queueSize) rear = 0;
-        ++currentSize;
-        return true;
     }
 
     public synchronized T dequeue() {
-        if (isEmpty()) {
-            System.err.println("queue is empty.");
+        try {
+            if (isEmpty()) throw new QueueError("Queue is empty.");
+            T o = queue.get(front++);
+            if (front == queueSize) front = 0;
+            --currentSize;
+            return o;
+        } catch (QueueError e) {
             return null;
         }
-        T o = queue.get(front++);
-        if (front == queueSize) front = 0;
-        --currentSize;
-        return o;
     }
 
-    public synchronized int size() {
+    public int size() {
         return currentSize;
     }
 

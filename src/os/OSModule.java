@@ -1,7 +1,7 @@
 package os;
 
 import common.CircularQueue;
-import common.Component;
+import common.bus.Component;
 import hardware.CPU;
 import hardware.io_device.IODevice;
 

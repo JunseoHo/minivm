@@ -1,6 +1,6 @@
 package hardware.io_device;
 
-import common.Component;
+import common.bus.Component;
 import hardware.HWInterrupt;
 
 public abstract class IODevice extends Component<HWInterrupt> implements Runnable {

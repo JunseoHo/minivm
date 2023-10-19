@@ -1,6 +1,6 @@
 package hardware;
 
-import common.Event;
+import common.bus.Event;
 
 public class HWInterrupt extends Event {
 
