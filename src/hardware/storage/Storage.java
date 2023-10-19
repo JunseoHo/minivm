@@ -31,6 +31,10 @@ public class Storage extends IODevice {
         else send(new HIQ(HWName.CPU, HIQ.WRITE_RESPONSE, storage.set(addr, val)));
     }
 
+    public synchronized long readRecord(int addr) {
+        return storage.get(addr);
+    }
+
     private boolean importDiskImage() {
         try (Scanner sc = new Scanner(new File(System.getProperty("user.dir") + DISK_IMAGE_PATH))) {
             while (sc.hasNextLine()) storage.add(Long.parseLong(sc.nextLine()));

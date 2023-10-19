@@ -2,6 +2,7 @@ package os;
 
 import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
+import os.file_manager.File;
 
 public interface SystemCall {
 
@@ -12,4 +13,8 @@ public interface SystemCall {
     void run();
 
     void switchContext();
+
+    File getCurrentDir();
+
+    File getFile(String parameter);
 }

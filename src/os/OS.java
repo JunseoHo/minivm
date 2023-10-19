@@ -50,8 +50,6 @@ public class OS implements SystemCall {
 
     @Override
     public void run() {
-        // start
-        System.out.println("OS start.");
         new Thread(processManager).start();
         new Thread(memoryManager).start();
         new Thread(fileManager).start();
@@ -73,5 +71,17 @@ public class OS implements SystemCall {
     public void switchContext() {
         ProcessManager processManager = (ProcessManager) this.processManager;
         processManager.switchContext();
+    }
+
+    @Override
+    public File getCurrentDir() {
+        FileManager fileManager = (FileManager) this.fileManager;
+        return fileManager.getCurrentDir();
+    }
+
+    @Override
+    public File getFile(String parameter) {
+        FileManager fileManager = (FileManager) this.fileManager;
+        return fileManager.getFile(parameter);
     }
 }

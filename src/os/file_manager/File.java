@@ -5,23 +5,34 @@ import java.util.List;
 
 public class File {
 
-    private FileType fileType;
-    private List<Long> records = new ArrayList<>();
+    public FileType type;
+    public String name;
+    public long base = 0;
+    public long size = 0;
+    public List<Long> records = new ArrayList<>();
+    public List<File> children = new ArrayList<>();
 
-    public File(FileType fileType) {
-        this.fileType = fileType;
-    }
-
-    public FileType getType() {
-        return fileType;
+    public File(FileType type) {
+        this.type = type;
     }
 
     public void addRecord(long record) {
         records.add(record);
     }
 
+    public void addChild(File file) {
+        children.add(file);
+    }
+
     public List<Long> getRecords() {
         return records;
+    }
+
+    @Override
+    public String toString() {
+        String str = "[ " + type + " : " + name + " ]\n";
+        for (File file : children) str += file.type + " : " + file.name + "\n";
+        return str;
     }
 
 }

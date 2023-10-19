@@ -1,9 +1,9 @@
 package hardware.io_device;
 
-public class InputDevice extends IODevice {
-    @Override
-    public void read(int addr) {
+public class StandardOutput extends IODevice {
 
+    @Override
+    public void read(int addr){
     }
 
     @Override

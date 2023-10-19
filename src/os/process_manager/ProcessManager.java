@@ -71,7 +71,6 @@ public class ProcessManager extends OSModule {
             runningProcess.restore(cpu.save());
             readyQueue.enqueue(runningProcess);
             runningProcess = readyQueue.dequeue();
-            System.out.println(runningProcess.getId());
             cpu.restore(runningProcess.save());
         }
 
@@ -80,7 +79,7 @@ public class ProcessManager extends OSModule {
     private class Loader {
 
         public void load(File file) {
-            if (file.getType() != FileType.EXECUTABLE) {
+            if (file.type != FileType.EXECUTABLE) {
                 send(new SWInterrupt(SWName.PROCESS_MANAGER, 0x02));
                 return;
             }
