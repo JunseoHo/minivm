@@ -5,6 +5,7 @@ import hardware.Memory;
 import hardware.io_device.IODevice;
 import os.OSModule;
 import os.SWInterrupt;
+import os.SWName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,11 +36,11 @@ public class MemoryManager extends OSModule {
 
     public synchronized void allocPages(SWInterrupt interrupt) {
         int pageNum = (int) interrupt.values[0];
-        if (pageNum > pages.size()) send(new SWInterrupt("ProcessManager", 0x34));
+        if (pageNum > pages.size()) send(new SWInterrupt(SWName.PROCESS_MANAGER, 0x34));
         else {
             List<Page> requestedPages = new ArrayList<>();
             for (int index = 0; index < pageNum; index++) requestedPages.add(pages.dequeue());
-            send(new SWInterrupt("ProcessManager", 0x33, requestedPages));
+            send(new SWInterrupt(SWName.PROCESS_MANAGER, 0x33, requestedPages));
         }
     }
 
@@ -47,7 +48,7 @@ public class MemoryManager extends OSModule {
         int base = (int) interrupt.values[0];
         List<Long> values = (List<Long>) interrupt.values[1];
         for (Long value : values) memory.write(base++, value);
-        send(new SWInterrupt("ProcessManager", 0x36));
+        send(new SWInterrupt(SWName.PROCESS_MANAGER, 0x36));
     }
 
     @Override

@@ -5,6 +5,7 @@ import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 import os.OSModule;
 import os.SWInterrupt;
+import os.SWName;
 import os.file_manager.File;
 import os.file_manager.FileType;
 import os.memory_manager.Page;
@@ -58,7 +59,6 @@ public class ProcessManager extends OSModule {
             if (runningProcess == null) {
                 runningProcess = process;
                 cpu.restore(process.save());
-                cpu.switchTasking();
             } else readyQueue.enqueue(process);
         }
 
@@ -81,10 +81,10 @@ public class ProcessManager extends OSModule {
 
         public void load(File file) {
             if (file.getType() != FileType.EXECUTABLE) {
-                send(new SWInterrupt("ProcessManager", 0x02));
+                send(new SWInterrupt(SWName.PROCESS_MANAGER, 0x02));
                 return;
             }
-            send(new SWInterrupt("MemoryManager", 0x32, 2));
+            send(new SWInterrupt(SWName.MEMORY_MANAGER, 0x32, 2));
             interrupt = receive(0x33, 0x34);
             if (interrupt.id == 0x33) {
                 Process process = new Process(0);
@@ -92,7 +92,7 @@ public class ProcessManager extends OSModule {
                 Page codeSegment = pages.get(0);
                 Page dataSegment = pages.get(1);
                 process.setPage(codeSegment, dataSegment);
-                send(new SWInterrupt("MemoryManager", 0x35, codeSegment.base, file.getRecords()));
+                send(new SWInterrupt(SWName.MEMORY_MANAGER, 0x35, codeSegment.base, file.getRecords()));
                 receive(0x36);
                 scheduler.admit(process);
             }

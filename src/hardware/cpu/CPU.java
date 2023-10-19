@@ -98,7 +98,7 @@ public class CPU extends Component<HIQ> implements Runnable {
         try {
             send(new HIQ(HWName.MEMORY, HIQ.CPU_READ, MAR = CS + (PC++)));
             HIQ intr = receive(HIQ.READ_RESPONSE, HIQ.SEGFAULT);
-            if (receive(HIQ.READ_RESPONSE, HIQ.SEGFAULT).id == HIQ.READ_RESPONSE) MBR = intr.values[0];
+            if (intr.id == HIQ.READ_RESPONSE) MBR = intr.values[0];
             else throw new ProcessorException("Segmentation fault.");
         } catch (ProcessorException e) {
             switchTasking();
@@ -113,7 +113,6 @@ public class CPU extends Component<HIQ> implements Runnable {
     }
 
     private void execute() {
-        System.out.println(PC);
         switch ((int) IR_OPCODE) {
             case 0x00 -> halt();
             case 0x01 -> load();

@@ -28,10 +28,10 @@ public class OS implements SystemCall {
         fileManager = new FileManager();
         ioManager = new IOManager();
         // associate interrupt bus with OS modules
-        processManager.associate(interruptBus, "ProcessManager");
-        memoryManager.associate(interruptBus, "MemoryManager");
-        fileManager.associate(interruptBus, "FileManager");
-        ioManager.associate(interruptBus, "IOManager");
+        processManager.associate(interruptBus, SWName.PROCESS_MANAGER);
+        memoryManager.associate(interruptBus, SWName.MEMORY_MANAGER);
+        fileManager.associate(interruptBus, SWName.FILE_MANAGER);
+        ioManager.associate(interruptBus, SWName.IO_MANAGER);
     }
 
     @Override

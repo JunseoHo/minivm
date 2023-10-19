@@ -9,6 +9,7 @@ import hardware.io_device.IODevice;
 import hardware.io_device.InputDevice;
 import hardware.io_device.OutputDevice;
 import hardware.storage.Storage;
+import monitor.HardwareMonitor;
 import os.OS;
 import os.SystemCall;
 
@@ -42,6 +43,7 @@ public class MiniVM {
         new Thread(inputDevice).start();
         new Thread(outputDevice).start();
         new Thread(cpu).start();
+        new HardwareMonitor(cpu, (Memory) memory).setVisible(true);
     }
 
 }
