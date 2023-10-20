@@ -1,18 +1,18 @@
 package os;
 
 import common.bus.Bus;
+import common.bus.Component;
 import hardware.cpu.CPU;
 import hardware.Memory;
 import hardware.io_device.IODevice;
 import hardware.storage.Storage;
 import os.file_manager.File;
 import os.file_manager.FileManager;
-import os.file_manager.FileType;
 import os.io_manager.IOManager;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
 
-public class OS implements SystemCall {
+public class OS extends Component<SIQ> implements SystemCall {
 
     private Bus interruptBus;
     private OSModule processManager;
@@ -28,10 +28,15 @@ public class OS implements SystemCall {
         fileManager = new FileManager();
         ioManager = new IOManager();
         // associate interrupt bus with OS modules
+        associate(interruptBus, SWName.OS);
         processManager.associate(interruptBus, SWName.PROCESS_MANAGER);
         memoryManager.associate(interruptBus, SWName.MEMORY_MANAGER);
         fileManager.associate(interruptBus, SWName.FILE_MANAGER);
         ioManager.associate(interruptBus, SWName.IO_MANAGER);
+    }
+
+    public void generateInterrupt(SIQ intr) {
+        send(intr);
     }
 
     @Override
@@ -54,17 +59,6 @@ public class OS implements SystemCall {
         new Thread(memoryManager).start();
         new Thread(fileManager).start();
         new Thread(ioManager).start();
-        File file = new File(FileType.EXECUTABLE);
-        file.addRecord(67108865);
-        file.addRecord(67108866);
-        file.addRecord(67108867);
-        file.addRecord(67108868);
-        file.addRecord(67108869);
-        file.addRecord(402653185);
-        ProcessManager pm = (ProcessManager) processManager;
-        pm.newProcess(file);
-        pm.newProcess(file);
-        pm.newProcess(file);
     }
 
     @Override
@@ -80,8 +74,8 @@ public class OS implements SystemCall {
     }
 
     @Override
-    public File getFile(String parameter) {
+    public File getFile(String fileName) {
         FileManager fileManager = (FileManager) this.fileManager;
-        return fileManager.getFile(parameter);
+        return fileManager.getFile(fileName);
     }
 }

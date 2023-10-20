@@ -4,7 +4,7 @@ import common.CircularQueue;
 import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 import os.OSModule;
-import os.SWInterrupt;
+import os.SIQ;
 import os.SWName;
 import os.file_manager.File;
 import os.file_manager.FileType;
@@ -19,6 +19,12 @@ public class ProcessManager extends OSModule {
     // components
     private Scheduler scheduler = new Scheduler();
     private Loader loader = new Loader();
+    private CircularQueue<Integer> processIdQueue = new CircularQueue<>();
+
+    public ProcessManager() {
+        for (int processId = 0; processId < processIdQueue.size(); processId++)
+            processIdQueue.enqueue(processId);
+    }
 
     @Override
     public void associate(CPU cpu) {
@@ -35,8 +41,8 @@ public class ProcessManager extends OSModule {
 
     }
 
-    public void newProcess(File file) {
-        loader.load(file);
+    public void newProcess(String fileName) {
+        loader.newProcess(fileName);
     }
 
     @Override
@@ -78,25 +84,31 @@ public class ProcessManager extends OSModule {
 
     private class Loader {
 
-        public void load(File file) {
-            if (file.type != FileType.EXECUTABLE) {
-                send(new SWInterrupt(SWName.PROCESS_MANAGER, 0x02));
+        public void newProcess(String fileName) {
+            send(new SIQ(SWName.FILE_MANAGER, SIQ.REQUEST_FILE, fileName));
+            SIQ intr = receive(SIQ.RESPONSE_FILE, SIQ.FILE_NOT_FOUND);
+            if (intr.id == SIQ.FILE_NOT_FOUND) {
+                System.err.println("file not found.");
                 return;
             }
-            send(new SWInterrupt(SWName.MEMORY_MANAGER, 0x32, 2));
-            interrupt = receive(0x33, 0x34);
-            if (interrupt.id == 0x33) {
-                Process process = new Process(0);
-                List<Page> pages = (List<Page>) interrupt.values[0];
-                Page codeSegment = pages.get(0);
-                Page dataSegment = pages.get(1);
-                process.setPage(codeSegment, dataSegment);
-                send(new SWInterrupt(SWName.MEMORY_MANAGER, 0x35, codeSegment.base, file.getRecords()));
-                receive(0x36);
-                scheduler.admit(process);
+            File file = (File) intr.values[0];
+            if (file.type != FileType.EXECUTABLE) {
+                System.err.println("file type is not executable.");
+                return;
             }
+            send(new SIQ(SWName.MEMORY_MANAGER, SIQ.REQUEST_PAGES, 2));
+            intr = receive(SIQ.RESPONSE_PAGES, SIQ.OUT_OF_MEMORY);
+            if (intr.id == SIQ.OUT_OF_MEMORY) {
+                System.err.println("out of memory.");
+                return;
+            }
+            Process process = new Process(processIdQueue.dequeue());
+            List<Page> pages = (List<Page>) intr.values[0];
+            process.setPage(pages.get(0), pages.get(1));
+            send(new SIQ(SWName.MEMORY_MANAGER, SIQ.REQUEST_MEMORY_WRITE, pages.get(0).base, file.getRecords()));
+            receive(SIQ.RESPONSE_MEMORY_WRITE);
+            scheduler.admit(process);
         }
-
     }
 
 }
