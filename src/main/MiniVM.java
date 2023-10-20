@@ -9,14 +9,15 @@ import hardware.io_device.IODevice;
 import hardware.io_device.StandardInput;
 import hardware.io_device.StandardOutput;
 import hardware.storage.Storage;
-import monitor.HardwareMonitor;
 import os.OS;
 import os.SystemCall;
-import shell.Shell;
+import visualizer.MiniVMVisualizer;
+
+import javax.swing.*;
 
 public class MiniVM {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         // create hardware
         Bus<HIQ> controlBus = new Bus();
         CPU cpu = new CPU();
@@ -44,8 +45,9 @@ public class MiniVM {
         new Thread(stdin).start();
         new Thread(stdout).start();
         new Thread(cpu).start();
-        // run shell
-        new Thread(new Shell(os)).start();
+        // run visualizer
+        UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        new MiniVMVisualizer(cpu, (Memory) memory, os).setVisible(true);
     }
 
 }

@@ -17,6 +17,11 @@ public class HIQ extends Event {
         this.values = values;
     }
 
+    @Override
+    public String toString() {
+        return "HIQ[" + id + "]";
+    }
+
     // interrupt ids
     public static final int STAT_CHK = 0x00;
     public static final int STAT_POS = 0x01;

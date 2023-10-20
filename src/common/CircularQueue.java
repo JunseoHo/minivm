@@ -57,4 +57,11 @@ public class CircularQueue<T> {
         return currentSize;
     }
 
+    @Override
+    public String toString() {
+        String str = "";
+        for (T o : queue) str += o + " ";
+        return str;
+    }
+
 }
