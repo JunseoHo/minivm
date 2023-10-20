@@ -15,15 +15,13 @@ import java.util.List;
 public class ProcessManager extends OSModule {
     // hardware
     private CPU cpu;
-    private IODevice memory;
     // components
     private Scheduler scheduler = new Scheduler();
     private Loader loader = new Loader();
     private CircularQueue<Integer> processIdQueue = new CircularQueue<>();
 
     public ProcessManager() {
-        for (int processId = 0; processId < processIdQueue.size(); processId++)
-            processIdQueue.enqueue(processId);
+        for (int processId = 0; processId < 1024; processId++) processIdQueue.enqueue(processId);
     }
 
     @Override
@@ -32,24 +30,19 @@ public class ProcessManager extends OSModule {
     }
 
     @Override
-    public void associate(IODevice memory) {
-        this.memory = memory;
-    }
-
-    @Override
     public void handleInterrupt() {
-
-    }
-
-    public void newProcess(String fileName) {
-        loader.newProcess(fileName);
+        for (SIQ intr : receiveAll()) queue.enqueue(intr);
+        while (!queue.isEmpty()) {
+            SIQ intr = queue.dequeue();
+            switch (intr.id) {
+                case SIQ.REQUEST_NEW_PROCESS -> loader.newProcess((String) intr.values[0]);
+            }
+        }
     }
 
     @Override
     public void run() {
-        while (true) {
-            handleInterrupt();
-        }
+        while (true) handleInterrupt();
     }
 
     public void switchContext() {
@@ -62,6 +55,7 @@ public class ProcessManager extends OSModule {
         private CircularQueue<Process> blockQueue = new CircularQueue<>();
 
         public void admit(Process process) {
+            System.out.println("Admit");
             if (runningProcess == null) {
                 runningProcess = process;
                 cpu.restore(process.save());

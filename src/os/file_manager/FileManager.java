@@ -7,6 +7,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import os.OSModule;
+import os.SIQ;
+import os.SWName;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -26,12 +28,18 @@ public class FileManager extends OSModule {
 
     @Override
     public void run() {
-
+        while (true) handleInterrupt();
     }
 
     @Override
     public void handleInterrupt() {
-
+        for (SIQ intr : receiveAll()) queue.enqueue(intr);
+        while (!queue.isEmpty()) {
+            SIQ intr = queue.dequeue();
+            switch (intr.id) {
+                case SIQ.REQUEST_FILE -> getFile((String) intr.values[0]);
+            }
+        }
     }
 
     public File getCurrentDir() {
@@ -74,8 +82,12 @@ public class FileManager extends OSModule {
         }
     }
 
-    public File getFile(String parameter) {
-        for (File file : currentDir.children) if (file.name.equals(parameter)) return file;
-        return null;
+    public void getFile(String fileName) {
+        for (File file : currentDir.children)
+            if (file.name.equals(fileName)) {
+                send(new SIQ(SWName.PROCESS_MANAGER, SIQ.RESPONSE_FILE, file));
+                return;
+            }
+        send(new SIQ(SWName.PROCESS_MANAGER, SIQ.FILE_NOT_FOUND));
     }
 }

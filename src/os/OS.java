@@ -67,15 +67,4 @@ public class OS extends Component<SIQ> implements SystemCall {
         processManager.switchContext();
     }
 
-    @Override
-    public File getCurrentDir() {
-        FileManager fileManager = (FileManager) this.fileManager;
-        return fileManager.getCurrentDir();
-    }
-
-    @Override
-    public File getFile(String fileName) {
-        FileManager fileManager = (FileManager) this.fileManager;
-        return fileManager.getFile(fileName);
-    }
 }

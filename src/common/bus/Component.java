@@ -64,7 +64,9 @@ public class Component<T extends Event> {
             if (name == null) throw new BusError("Component name is null.");
             while (true) {
                 T o = receive();
-                for (int id : targetIds) if (o.id == id) return o;
+                for (int id : targetIds) {
+                    if (o.id == id) return o;
+                }
                 queue.enqueue(o);
             }
         } catch (BusError e) {

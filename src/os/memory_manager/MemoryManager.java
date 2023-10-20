@@ -14,51 +14,46 @@ public class MemoryManager extends OSModule {
 
     private static final int PAGE_SIZE = 64;
     private Memory memory;
-    private CircularQueue<Page> pages = new CircularQueue<>(100);
+    private CircularQueue<Page> pageQueue = new CircularQueue<>(100);
 
     @Override
     public void run() {
-        while (true) {
-            handleInterrupt();
-        }
+        while (true) handleInterrupt();
     }
 
     public void associate(IODevice ioDevice) {
         memory = (Memory) ioDevice;
         int pageNum = memory.size() / PAGE_SIZE;
-        for (int num = 0; num < pageNum; num++) pages.enqueue(new Page(num * PAGE_SIZE, PAGE_SIZE));
+        for (int num = 0; num < pageNum; num++) pageQueue.enqueue(new Page(num * PAGE_SIZE, PAGE_SIZE));
     }
 
     public Page getPage() {
-        if (!pages.isEmpty()) return pages.dequeue();
+        if (!pageQueue.isEmpty()) return pageQueue.dequeue();
         return null;
     }
 
-    public synchronized void allocPages(SIQ interrupt) {
-        int pageNum = (int) interrupt.values[0];
-        if (pageNum > pages.size()) send(new SIQ(SWName.PROCESS_MANAGER, 0x34));
+    public synchronized void getPages(int num) {
+        if (num > pageQueue.size()) send(new SIQ(SWName.PROCESS_MANAGER, SIQ.OUT_OF_MEMORY));
         else {
-            List<Page> requestedPages = new ArrayList<>();
-            for (int index = 0; index < pageNum; index++) requestedPages.add(pages.dequeue());
-            send(new SIQ(SWName.PROCESS_MANAGER, 0x33, requestedPages));
+            List<Page> pages = new ArrayList<>();
+            for (int index = 0; index < num; index++) pages.add(pageQueue.dequeue());
+            send(new SIQ(SWName.PROCESS_MANAGER, SIQ.RESPONSE_PAGES, pages));
         }
     }
 
-    public synchronized void writeMemory(SIQ interrupt) {
-        int base = (int) interrupt.values[0];
-        List<Long> values = (List<Long>) interrupt.values[1];
-        for (Long value : values) memory.write(base++, value);
-        send(new SIQ(SWName.PROCESS_MANAGER, 0x36));
+    public synchronized void write(int base, List<Long> records) {
+        for (Long record : records) memory.write(base++, record);
+        send(new SIQ(SWName.PROCESS_MANAGER, SIQ.RESPONSE_MEMORY_WRITE));
     }
 
     @Override
     public void handleInterrupt() {
-        for (SIQ interrupt : receiveAll()) interruptQueue.enqueue(interrupt);
-        while (!interruptQueue.isEmpty()) {
-            interrupt = interruptQueue.dequeue();
-            switch (interrupt.id) {
-                case 0x32 -> allocPages(interrupt);
-                case 0x35 -> writeMemory(interrupt);
+        for (SIQ intr : receiveAll()) queue.enqueue(intr);
+        while (!queue.isEmpty()) {
+            SIQ intr = queue.dequeue();
+            switch (intr.id) {
+                case SIQ.REQUEST_PAGES -> getPages((Integer) intr.values[0]);
+                case SIQ.REQUEST_MEMORY_WRITE -> write((Integer) intr.values[0], (List<Long>) intr.values[1]);
             }
         }
     }

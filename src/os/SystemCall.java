@@ -14,7 +14,6 @@ public interface SystemCall {
 
     void switchContext();
 
-    File getCurrentDir();
+    void generateInterrupt(SIQ intr);
 
-    File getFile(String parameter);
 }
