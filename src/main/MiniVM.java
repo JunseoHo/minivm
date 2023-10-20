@@ -13,7 +13,6 @@ import os.OS;
 import os.SIQ;
 import os.SWName;
 import os.SystemCall;
-import visualizer.MiniVMVisualizer;
 
 import javax.swing.*;
 
@@ -47,7 +46,9 @@ public class MiniVM {
         new Thread(stdin).start();
         new Thread(stdout).start();
         new Thread(cpu).start();
-        os.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_NEW_PROCESS, "Sum"));
+        os.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_LOAD_PROCESS, "Sum"));
+        os.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_LOAD_PROCESS, "Sum"));
+        os.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_LOAD_PROCESS, "Sum"));
         // run visualizer
         //UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         //new MiniVMVisualizer(cpu, (Memory) memory, os).setVisible(true);

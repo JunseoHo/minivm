@@ -57,6 +57,10 @@ public class CircularQueue<T> {
         return currentSize;
     }
 
+    public int capacity(){
+        return queueSize;
+    }
+
     @Override
     public String toString() {
         String str = "";

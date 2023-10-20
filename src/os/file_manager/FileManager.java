@@ -1,5 +1,6 @@
 package os.file_manager;
 
+import common.InterruptServiceRoutine;
 import hardware.io_device.IODevice;
 import hardware.storage.Storage;
 import org.json.simple.JSONArray;
@@ -20,30 +21,26 @@ public class FileManager extends OSModule {
     // hardware
     private Storage storage;
 
+    public FileManager() {
+        super();
+        registerInterruptServiceRoutine(SIQ.REQUEST_FILE, (intr) -> getFile(intr));
+    }
+
     @Override
     public void associate(IODevice ioDevice) {
         storage = (Storage) ioDevice;
         importFileIndex();
     }
 
-    @Override
-    public void run() {
-        while (true) handleInterrupt();
-    }
-
-    @Override
-    public void handleInterrupt() {
-        for (SIQ intr : receiveAll()) queue.enqueue(intr);
-        while (!queue.isEmpty()) {
-            SIQ intr = queue.dequeue();
-            switch (intr.id) {
-                case SIQ.REQUEST_FILE -> getFile((String) intr.values[0]);
+    @InterruptServiceRoutine
+    public void getFile(SIQ intr) {
+        String fileName = (String) intr.values[0];
+        for (File file : currentDir.children)
+            if (file.name.equals(fileName)) {
+                send(new SIQ(SWName.PROCESS_MANAGER, SIQ.RESPONSE_FILE, file));
+                return;
             }
-        }
-    }
-
-    public File getCurrentDir() {
-        return currentDir;
+        send(new SIQ(SWName.PROCESS_MANAGER, SIQ.FILE_NOT_FOUND));
     }
 
     private File createFileTree(JSONObject obj) {
@@ -75,19 +72,12 @@ public class FileManager extends OSModule {
 
     private void importFileIndex() {
         try {
-            JSONObject fileMetadata = (JSONObject) new JSONParser().parse(new FileReader(System.getProperty("user.dir") + FILE_METADATA_PATH));
+            JSONObject fileMetadata = (JSONObject) new JSONParser()
+                    .parse(new FileReader(System.getProperty("user.dir") + FILE_METADATA_PATH));
             currentDir = createFileTree(fileMetadata);
         } catch (IOException | ParseException e) {
-            System.err.println("failed to import file metadata.");
+            System.err.println("Failed to import file metadata.");
         }
     }
 
-    public void getFile(String fileName) {
-        for (File file : currentDir.children)
-            if (file.name.equals(fileName)) {
-                send(new SIQ(SWName.PROCESS_MANAGER, SIQ.RESPONSE_FILE, file));
-                return;
-            }
-        send(new SIQ(SWName.PROCESS_MANAGER, SIQ.FILE_NOT_FOUND));
-    }
 }

@@ -61,10 +61,4 @@ public class OS extends Component<SIQ> implements SystemCall {
         new Thread(ioManager).start();
     }
 
-    @Override
-    public void switchContext() {
-        ProcessManager processManager = (ProcessManager) this.processManager;
-        processManager.switchContext();
-    }
-
 }

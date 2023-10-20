@@ -12,8 +12,6 @@ public interface SystemCall {
 
     void run();
 
-    void switchContext();
-
     void generateInterrupt(SIQ intr);
 
 }

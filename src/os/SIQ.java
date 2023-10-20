@@ -17,7 +17,9 @@ public class SIQ extends Event {
     }
 
     // interrupt ids
-    public static final int REQUEST_NEW_PROCESS = 0x00;
+    public static final int REQUEST_LOAD_PROCESS = 0x00;
+    public static final int REQUEST_SWITCH_CONTEXT = 0x01;
+    public static final int REQUEST_TERMINATE_PROCESS = 0x02;
     public static final int REQUEST_PAGES = 0x32;
     public static final int RESPONSE_PAGES = 0x33;
     public static final int OUT_OF_MEMORY = 0x34;
@@ -29,7 +31,7 @@ public class SIQ extends Event {
 
     @Override
     public String toString() {
-        return "SIQ [" + id + "] to " + receiver;
+        return "SIQ[" + id + "]";
     }
 
 }
