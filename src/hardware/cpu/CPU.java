@@ -82,6 +82,7 @@ public class CPU extends Component<HIQ> implements Runnable {
         while (true) {
             if (!tasking) continue;
             fetch();
+            ++PC;
             decode();
             execute();
             handleInterrupt();
@@ -98,7 +99,7 @@ public class CPU extends Component<HIQ> implements Runnable {
 
     private void fetch() {
         try {
-            send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, MAR = CS + (PC++)));
+            send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, MAR = CS + PC));
             HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
             if (intr.id == HIQ.RESPONSE_READ) MBR = intr.values[0];
             else throw new ProcessorException("Segmentation fault.");
@@ -140,7 +141,7 @@ public class CPU extends Component<HIQ> implements Runnable {
             else if (IR_ADDRESSING_MODE == AM_DI) {
                 send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
                 HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT).id == HIQ.RESPONSE_READ) AC = intr.values[0];
+                if (intr.id == HIQ.RESPONSE_READ) AC = intr.values[0];
                 else throw new ProcessorException("Segmentation fault.");
             }
         } catch (ProcessorException e) {
@@ -201,21 +202,12 @@ public class CPU extends Component<HIQ> implements Runnable {
     }
 
     private void jump() {
-        try {
-            if (IR_ADDRESSING_MODE == AM_IM) PC = IR_OPERAND_R;
-            else if (IR_ADDRESSING_MODE == AM_DI) {
-                send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
-                HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == 0x04) PC = intr.values[0];
-                else throw new ProcessorException("Segmentation fault.");
-            }
-        } catch (ProcessorException e) {
-            switchTasking();
-        }
+        PC = IR_OPERAND_R;
     }
 
     private void jumpZero() {
-        if (AC == 0) jump();
+        if (IR_ADDRESSING_MODE == AM_IM) if (AC == 0) jump();
+        if (IR_ADDRESSING_MODE == AM_DI) if (AC != 0) jump();
     }
 
     private void intr() {

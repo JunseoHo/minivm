@@ -45,7 +45,9 @@ public class Memory extends IODevice {
 
     @Override
     public void run() {
-        while (true) handleInterrupt();
+        while (true) {
+            handleInterrupt();
+        }
     }
 
     public int size() {

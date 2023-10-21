@@ -77,7 +77,7 @@ public class MiniVMVisualizer extends JFrame {
         public void run() {
             while (true) {
                 update();
-                Utils.sleep(100);
+                //Utils.sleep(10);
             }
         }
     }

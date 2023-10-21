@@ -13,6 +13,18 @@
       "name": "helloworld",
       "base": 16,
       "size": 13
+    },
+    {
+      "type": "executable",
+      "name": "fibonacci_30",
+      "base": 31,
+      "size": 25
+    },
+    {
+      "type": "executable",
+      "name": "sum_8000",
+      "base": 59,
+      "size": 12
     }
   ]
 }
