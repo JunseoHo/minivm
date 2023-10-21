@@ -1,18 +1,23 @@
 package os.io_manager;
 
+import hardware.io_device.IODevice;
 import os.OSModule;
 
 public class IOManager extends OSModule {
 
     private IODeviceVector ioDeviceVector;
 
-    @Override
-    public void run() {
-
+    public IOManager() {
+        ioDeviceVector = new IODeviceVector();
     }
 
     @Override
-    public void handleInterrupt() {
+    public void associate(IODevice ioDevice) {
+        ioDeviceVector.register(ioDevice);
+    }
 
+    @Override
+    public String toString() {
+        return "[IO manager]\n" + ioDeviceVector.toString();
     }
 }

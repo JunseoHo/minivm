@@ -5,6 +5,7 @@ import exception.ProcessLoadException;
 import hardware.HIQ;
 import hardware.HWName;
 import hardware.cpu.CPU;
+import hardware.cpu.Context;
 import os.OSModule;
 import os.SIQ;
 import os.SWName;
@@ -12,6 +13,7 @@ import os.file_manager.File;
 import os.file_manager.FileType;
 import os.memory_manager.Page;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProcessManager extends OSModule {
@@ -53,6 +55,10 @@ public class ProcessManager extends OSModule {
         }
 
         public void terminate(SIQ intr) {
+            processIdQueue.enqueue(runningProcess.getId());
+            List<Page> pages = new ArrayList<>();
+            pages.add(runningProcess.getCodeSegment());
+            pages.add(runningProcess.getDataSegment());
             if (readyQueue.isEmpty()) {
                 runningProcess = null;
                 cpu.switchTasking();
@@ -60,6 +66,8 @@ public class ProcessManager extends OSModule {
                 runningProcess = readyQueue.dequeue();
                 cpu.restore(runningProcess.save());
             }
+            send(new SIQ(SWName.MEMORY_MANAGER, SIQ.REQUEST_FREE_PAGE, pages));
+            receive(SIQ.RESPONSE_FREE_PAGE);
             cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_TERMINATE_PROCESS));
         }
 
@@ -99,6 +107,15 @@ public class ProcessManager extends OSModule {
             } catch (ProcessLoadException e) {
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "[Process Manager]\n"
+                + "Running process      : " + scheduler.runningProcess + "\n"
+                + "Ready queue          : " + scheduler.readyQueue + "\n"
+                + "Block queue          : " + scheduler.blockQueue + "\n"
+                + cpu.save() + "\n";
     }
 
 }

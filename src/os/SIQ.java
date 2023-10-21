@@ -25,6 +25,8 @@ public class SIQ extends Event {
     public static final int OUT_OF_MEMORY = 0x34;
     public static final int REQUEST_MEMORY_WRITE = 0x35;
     public static final int RESPONSE_MEMORY_WRITE = 0x36;
+    public static final int REQUEST_FREE_PAGE = 0x37;
+    public static final int RESPONSE_FREE_PAGE = 0x38;
     public static final int REQUEST_FILE = 0x64;
     public static final int RESPONSE_FILE = 0x65;
     public static final int FILE_NOT_FOUND = 0x66;

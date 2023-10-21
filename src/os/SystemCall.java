@@ -14,4 +14,6 @@ public interface SystemCall {
 
     void generateInterrupt(SIQ intr);
 
+    String status(String swName);
+
 }

@@ -30,7 +30,7 @@ public class Component<T extends Event> {
     protected boolean send(T o) {
         try {
             if (bus == null) throw new BusError("Bus is null.");
-            System.out.printf("%-16s%-11s%-12s\n", name, " sent ", o);
+            //System.out.printf("%-16s%-11s%-12s\n", name, " sent ", o);
             return bus.send(o);
         } catch (BusError e) {
             return false;
@@ -53,7 +53,7 @@ public class Component<T extends Event> {
             if (name == null) throw new BusError("Component name is null.");
             T o;
             while ((o = tryReceive()) == null) ;
-            System.out.printf("%-16s%-11s%-12s\n", name, " received ", o);
+            //System.out.printf("%-16s%-11s%-12s\n", name, " received ", o);
             return o;
         } catch (BusError e) {
             return null;

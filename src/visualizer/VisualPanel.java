@@ -16,7 +16,7 @@ public class VisualPanel extends JPanel {
         textArea = new JTextArea();
         textArea.setBackground(Color.BLACK);
         textArea.setForeground(Color.WHITE);
-        textArea.setPreferredSize(new Dimension(400, 250));
+        textArea.setPreferredSize(new Dimension(600, 290));
         textArea.setEnabled(false);
         textArea.setEditable(false);
         textArea.setDisabledTextColor(Color.WHITE);

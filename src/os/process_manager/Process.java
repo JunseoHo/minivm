@@ -38,4 +38,17 @@ public class Process {
         context.DS = dataSegment.base;
     }
 
+    public Page getCodeSegment() {
+        return codeSegment;
+    }
+
+    public Page getDataSegment() {
+        return dataSegment;
+    }
+
+    @Override
+    public String toString() {
+        return "Process[" + id + "]";
+    }
+
 }

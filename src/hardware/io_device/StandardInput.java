@@ -20,4 +20,9 @@ public class StandardInput extends IODevice {
     public void run() {
 
     }
+
+    @Override
+    public String toString(){
+        return "Stdin";
+    }
 }

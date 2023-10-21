@@ -21,7 +21,7 @@ public class CPU extends Component<HIQ> implements Runnable {
     private long IR_OPERAND_L = 0;
     private long IR_OPERAND_R = 0;
     // status registers
-    private boolean tasking = false;
+    private volatile boolean tasking = false; // Should be excluded from optimization
     // general-purpose registers
     private long AC = 0;
     // segment registers
@@ -81,7 +81,6 @@ public class CPU extends Component<HIQ> implements Runnable {
         new Thread(timer).start();
         while (true) {
             if (!tasking) continue;
-            System.out.println(PC + CS);
             fetch();
             decode();
             execute();

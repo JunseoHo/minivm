@@ -20,4 +20,9 @@ public class StandardOutput extends IODevice {
     public void run() {
 
     }
+
+    @Override
+    public String toString(){
+        return "Stdout";
+    }
 }

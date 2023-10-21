@@ -40,6 +40,18 @@ public class OS extends Component<SIQ> implements SystemCall {
     }
 
     @Override
+    public String status(String swName) {
+        String status = "";
+        switch (swName) {
+            case SWName.PROCESS_MANAGER -> status = processManager.toString();
+            case SWName.MEMORY_MANAGER -> status = memoryManager.toString();
+            case SWName.FILE_MANAGER -> status = fileManager.toString();
+            case SWName.IO_MANAGER -> status = ioManager.toString();
+        }
+        return status;
+    }
+
+    @Override
     public void associate(CPU cpu) {
         processManager.associate(cpu);
     }

@@ -3,7 +3,7 @@ package visualizer;
 import common.Utils;
 import hardware.Memory;
 import hardware.cpu.CPU;
-import hardware.cpu.Context;
+import os.SWName;
 import os.SystemCall;
 
 import javax.swing.*;
@@ -15,43 +15,60 @@ public class MiniVMVisualizer extends JFrame {
     private Memory memory;
     private SystemCall systemCall;
     // components
-    private VisualPanel cpuPanel = new VisualPanel(() -> cpuStatus());
+    private GenerateInterruptPanel generateInterruptPanel;
+    private VisualPanel processManagerVisualizer = new VisualPanel(() -> processManagerStatus());
+    private VisualPanel memoryManagerVisualizer = new VisualPanel(() -> memoryManagerStatus());
+    private VisualPanel fileManagerVisualizer = new VisualPanel(() -> fileManagerStatus());
+    private VisualPanel ioManagerVisualizer = new VisualPanel(() -> ioManagerStatus());
 
     public MiniVMVisualizer(CPU cpu, Memory memory, SystemCall systemCall) {
         // set attributes
         this.cpu = cpu;
         this.memory = memory;
         this.systemCall = systemCall;
+        generateInterruptPanel = new GenerateInterruptPanel(systemCall);
         setTitle("MiniVM");
-        setSize(1280, 680);
+        setSize(1680, 680);
+        getContentPane().setBackground(Color.WHITE);
         setResizable(false);
         setLocationRelativeTo(null);
         setLayout(new GridLayout(2, 3));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
         // add components
-        add(cpuPanel);
+        add(generateInterruptPanel, BorderLayout.WEST);
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(2, 2));
+        panel.add(processManagerVisualizer);
+        panel.add(memoryManagerVisualizer);
+        panel.add(fileManagerVisualizer);
+        panel.add(ioManagerVisualizer);
+        add(panel, BorderLayout.CENTER);
         // start updater
         new Thread(new Updater()).start();
     }
 
     private void update() {
-        cpuPanel.update();
+        processManagerVisualizer.update();
+        memoryManagerVisualizer.update();
+        fileManagerVisualizer.update();
+        ioManagerVisualizer.update();
     }
 
-    private String cpuStatus() {
-        Context context = cpu.save();
-        return "[CPU]\n"
-                + "PC                   : " + context.PC +"\n"
-                + "MAR                  : " + context.MAR+"\n"
-                + "MBR                  : " + context.MBR+"\n"
-                + "IR_ADDRESSING_MODE   : " + context.IR_ADDRESSING_MODE+"\n"
-                + "IR_OPCODE            : " + context.IR_OPCODE+"\n"
-                + "IR_OPERAND_L         : " + context.IR_OPERAND_L+"\n"
-                + "IR_OPERAND_R         : " + context.IR_OPERAND_R+"\n"
-                + "TASKING              : " + context.tasking+"\n"
-                + "AC                   : " + context.AC+"\n"
-                + "CS                   : " + context.CS+"\n"
-                + "DS                   : " + context.DS+"\n";
+    private String processManagerStatus() {
+        return systemCall.status(SWName.PROCESS_MANAGER);
+    }
+
+    private String memoryManagerStatus() {
+        return systemCall.status(SWName.MEMORY_MANAGER);
+    }
+
+    private String fileManagerStatus() {
+        return systemCall.status(SWName.FILE_MANAGER);
+    }
+
+    private String ioManagerStatus() {
+        return systemCall.status(SWName.IO_MANAGER);
     }
 
     private class Updater implements Runnable {

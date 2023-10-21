@@ -80,4 +80,11 @@ public class FileManager extends OSModule {
         }
     }
 
+    @Override
+    public String toString() {
+        String str = "[File Manager]\nCurrent directory : " + currentDir.name + "\n\n";
+        for (File child : currentDir.children) str += child.name + " (" + child.type + ")\n";
+        return str;
+    }
+
 }

@@ -57,14 +57,19 @@ public class CircularQueue<T> {
         return currentSize;
     }
 
-    public int capacity(){
+    public int capacity() {
         return queueSize;
     }
 
     @Override
     public String toString() {
         String str = "";
-        for (T o : queue) str += o + " ";
+        if (front < rear) {
+            for (int index = front; index < rear; index++) str += queue.get(index) + " ";
+        } else if (front > rear) {
+            for (int index = front; index < queueSize; index++) str += queue.get(index) + " ";
+            for (int index = 0; index < rear; index++) str += queue.get(index) + " ";
+        } else str = "empty";
         return str;
     }
 
