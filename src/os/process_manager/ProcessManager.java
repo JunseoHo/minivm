@@ -1,11 +1,11 @@
 package os.process_manager;
 
 import common.CircularQueue;
+import common.InterruptServiceRoutine;
 import exception.ProcessLoadException;
 import hardware.HIQ;
 import hardware.HWName;
 import hardware.cpu.CPU;
-import hardware.cpu.Context;
 import os.OSModule;
 import os.SIQ;
 import os.SWName;
@@ -13,8 +13,7 @@ import os.file_manager.File;
 import os.file_manager.FileType;
 import os.memory_manager.Page;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ProcessManager extends OSModule {
     // attributes
@@ -35,6 +34,8 @@ public class ProcessManager extends OSModule {
         registerInterruptServiceRoutine(SIQ.REQUEST_LOAD_PROCESS, (intr) -> loader.loadProcess(intr));
         registerInterruptServiceRoutine(SIQ.REQUEST_SWITCH_CONTEXT, (intr) -> scheduler.switchContext(intr));
         registerInterruptServiceRoutine(SIQ.REQUEST_TERMINATE_PROCESS, (intr) -> scheduler.terminate(intr));
+        registerInterruptServiceRoutine(SIQ.REQUEST_IO_WRITE, (intr) -> scheduler.ioWrite(intr));
+        registerInterruptServiceRoutine(SIQ.COMPLETE_IO, (intr) -> scheduler.ioComplete(intr));
     }
 
     @Override
@@ -45,13 +46,48 @@ public class ProcessManager extends OSModule {
     private class Scheduler {
         private Process runningProcess;
         private CircularQueue<Process> readyQueue = new CircularQueue<>();
-        private CircularQueue<Process> blockQueue = new CircularQueue<>();
+        private List<Process> blockQueue = new LinkedList<>();
 
         public void admit(Process process) {
             if (runningProcess == null) {
                 runningProcess = process;
                 cpu.restore(process.save());
             } else readyQueue.enqueue(process);
+        }
+
+        @InterruptServiceRoutine
+        public void ioWrite(SIQ intr) {
+            int runningProcessId = runningProcess.getId();
+            int port = ((int) intr.values[0]);
+            int base = ((int) intr.values[1]);
+            int size = ((int) intr.values[2]);
+            if (runningProcess == null) return;
+            runningProcess.restore(cpu.save());
+            blockQueue.add(runningProcess);
+            if (readyQueue.isEmpty()) {
+                runningProcess = null;
+                cpu.switchTasking();
+            } else {
+                runningProcess = readyQueue.dequeue();
+                cpu.restore(runningProcess.save());
+            }
+            send(new SIQ(SWName.IO_MANAGER, SIQ.REQUEST_IO_WRITE, runningProcessId, port, base, size));
+            receive(SIQ.RESPONSE_IO_WRITE);
+            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_IO_WRITE));
+        }
+
+        @InterruptServiceRoutine
+        public void ioComplete(SIQ intr) {
+            int processId = (int) intr.values[0];
+            for (int index = 0; index < blockQueue.size(); index++) {
+                Process process = blockQueue.get(index);
+                if (process.getId() == processId) {
+                    blockQueue.remove(index);
+                    admit(process);
+                    break;
+                }
+            }
+            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_TERMINATE));
         }
 
         public void terminate(SIQ intr) {
@@ -68,7 +104,7 @@ public class ProcessManager extends OSModule {
             }
             send(new SIQ(SWName.MEMORY_MANAGER, SIQ.REQUEST_FREE_PAGE, pages));
             receive(SIQ.RESPONSE_FREE_PAGE);
-            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_TERMINATE_PROCESS));
+            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_TERMINATE));
         }
 
         public void switchContext(SIQ intr) {

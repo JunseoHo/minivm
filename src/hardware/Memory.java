@@ -25,6 +25,11 @@ public class Memory extends IODevice {
         else send(new HIQ(HWName.CPU, HIQ.RESPONSE_READ, memory[addr]));
     }
 
+    public synchronized void read(int addr, String receiver) {
+        if (addr < 0 || addr > size - 1) send(new HIQ(HWName.CPU, HIQ.SEGFAULT));
+        else send(new HIQ(receiver, HIQ.RESPONSE_IO_READ, memory[addr]));
+    }
+
     @Override
     public synchronized void write(int addr, long val) {
         if (addr < 0 || addr > size - 1) send(new HIQ(HWName.CPU, HIQ.SEGFAULT));
@@ -37,8 +42,9 @@ public class Memory extends IODevice {
         if ((intr = receive()) != null) {
             switch (intr.id) {
                 case HIQ.STAT_CHK -> send(new HIQ(HWName.CPU, HIQ.STAT_POS));
-                case HIQ.REQUEST_READ -> read((int) intr.values[0]);
-                case HIQ.REQUEST_WRITE -> write((int) intr.values[0], intr.values[1]);
+                case HIQ.REQUEST_READ -> read(((Long) intr.values[0]).intValue());
+                case HIQ.REQUEST_WRITE -> write(((Long) intr.values[0]).intValue(), ((Long) intr.values[1]).intValue());
+                case HIQ.REQUEST_IO_READ -> read((int) intr.values[0], (String) intr.values[1]);
             }
         }
     }

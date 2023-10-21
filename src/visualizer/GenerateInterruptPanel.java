@@ -26,7 +26,7 @@ public class GenerateInterruptPanel extends JPanel {
     }
 
     private SIQ REQUEST_LOAD_PROCESS() {
-        return new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_LOAD_PROCESS, "sum_8000");
+        return new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_LOAD_PROCESS, "write_hello");
     }
 
 }

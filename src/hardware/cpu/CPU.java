@@ -80,12 +80,13 @@ public class CPU extends Component<HIQ> implements Runnable {
         systemCall.run();
         new Thread(timer).start();
         while (true) {
+            handleInterrupt();
             if (!tasking) continue;
             fetch();
             ++PC;
             decode();
             execute();
-            handleInterrupt();
+            Utils.sleep(1000);
         }
     }
 
@@ -101,7 +102,7 @@ public class CPU extends Component<HIQ> implements Runnable {
         try {
             send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, MAR = CS + PC));
             HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-            if (intr.id == HIQ.RESPONSE_READ) MBR = intr.values[0];
+            if (intr.id == HIQ.RESPONSE_READ) MBR = (Long) intr.values[0];
             else throw new ProcessorException("Segmentation fault.");
         } catch (ProcessorException e) {
             switchTasking();
@@ -141,7 +142,7 @@ public class CPU extends Component<HIQ> implements Runnable {
             else if (IR_ADDRESSING_MODE == AM_DI) {
                 send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
                 HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC = intr.values[0];
+                if (intr.id == HIQ.RESPONSE_READ) AC = (Long) intr.values[0];
                 else throw new ProcessorException("Segmentation fault.");
             }
         } catch (ProcessorException e) {
@@ -165,7 +166,7 @@ public class CPU extends Component<HIQ> implements Runnable {
             else if (IR_ADDRESSING_MODE == AM_DI) {
                 send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
                 HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC += intr.values[0];
+                if (intr.id == HIQ.RESPONSE_READ) AC += (Long) intr.values[0];
                 else throw new ProcessorException("Segmentation fault.");
             }
         } catch (ProcessorException e) {
@@ -179,7 +180,7 @@ public class CPU extends Component<HIQ> implements Runnable {
             else if (IR_ADDRESSING_MODE == AM_DI) {
                 send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
                 HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC -= intr.values[0];
+                if (intr.id == HIQ.RESPONSE_READ) AC -= (Long) intr.values[0];
                 else throw new ProcessorException("Segmentation fault.");
             }
         } catch (ProcessorException e) {
@@ -193,7 +194,7 @@ public class CPU extends Component<HIQ> implements Runnable {
             else if (IR_ADDRESSING_MODE == AM_DI) {
                 send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
                 HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC *= intr.values[0];
+                if (intr.id == HIQ.RESPONSE_READ) AC *= (Long) intr.values[0];
                 else throw new ProcessorException("Segmentation fault.");
             }
         } catch (ProcessorException e) {
@@ -219,7 +220,12 @@ public class CPU extends Component<HIQ> implements Runnable {
     }
 
     private void write() {
-
+        // IR_OPERAND_L(13) -> PORT = (3), BASE = (10)
+        int port = ((int) IR_OPERAND_L >> 10);
+        int base = (int) (((int) IR_OPERAND_L & 0x3FF) + DS);
+        int size = (int) IR_OPERAND_R;
+        systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_IO_WRITE, port, base, size));
+        receive(HIQ.RESPONSE_IO_WRITE);
     }
 
     public void generateInterrupt(HIQ intr) {
@@ -231,6 +237,11 @@ public class CPU extends Component<HIQ> implements Runnable {
         while (!queue.isEmpty()) {
             HIQ intr = queue.dequeue();
             switch (intr.id) {
+                case HIQ.COMPLETE_IO -> {
+                    int processId = (int) intr.values[0];
+                    systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.COMPLETE_IO, processId));
+                    receive(HIQ.RESPONSE_TERMINATE);
+                }
                 case HIQ.TIME_SLICE_EXPIRED -> {
                     systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_SWITCH_CONTEXT));
                     receive(HIQ.RESPONSE_SWITCH_CONTEXT);
@@ -238,7 +249,7 @@ public class CPU extends Component<HIQ> implements Runnable {
                 }
                 case HIQ.HALT -> {
                     systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_TERMINATE_PROCESS));
-                    receive(HIQ.RESPONSE_TERMINATE_PROCESS);
+                    receive(HIQ.RESPONSE_TERMINATE);
                 }
             }
         }

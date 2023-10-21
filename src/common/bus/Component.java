@@ -10,7 +10,7 @@ import java.util.List;
 public class Component<T extends Event> {
 
     private Bus<T> bus;
-    private String name;
+    protected String name;
     protected CircularQueue<T> queue = new CircularQueue<>();
 
     public boolean associate(Bus<T> bus, String name) {

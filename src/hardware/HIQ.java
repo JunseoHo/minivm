@@ -5,13 +5,13 @@ import common.bus.Event;
 public class HIQ extends Event {
 
     // attributes
-    public long values[];
+    public Object values[];
 
     public HIQ(String receiver, int id) {
         this(receiver, id, null);
     }
 
-    public HIQ(String receiver, int id, long... values) {
+    public HIQ(String receiver, int id, Object... values) {
         this.receiver = receiver;
         this.id = id;
         this.values = values;
@@ -31,8 +31,13 @@ public class HIQ extends Event {
     public static final int REQUEST_WRITE = 0x05;
     public static final int RESPONSE_WRITE = 0x06;
     public static final int HALT = 0x07;
-    public static final int RESPONSE_TERMINATE_PROCESS = 0x08;
+    public static final int RESPONSE_TERMINATE = 0x08;
     public static final int TIME_SLICE_EXPIRED = 0x09;
     public static final int RESPONSE_SWITCH_CONTEXT = 0x10;
+    public static final int REQUEST_IO_WRITE = 0x11;
+    public static final int RESPONSE_IO_WRITE = 0x12;
+    public static final int REQUEST_IO_READ = 0x13;
+    public static final int RESPONSE_IO_READ = 0x14;
+    public static final int COMPLETE_IO = 0x15;
     public static final int SEGFAULT = 0x40;
 }

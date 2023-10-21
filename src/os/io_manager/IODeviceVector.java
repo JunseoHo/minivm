@@ -16,6 +16,10 @@ public class IODeviceVector {
         ioDeviceVector.add(ioDevice);
     }
 
+    public IODevice get(int port) {
+        return ioDeviceVector.get(port);
+    }
+
     @Override
     public String toString() {
         String str = "";

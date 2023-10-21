@@ -11,4 +11,7 @@ public abstract class IODevice extends Component<HIQ> implements Runnable {
 
     public abstract void handleInterrupt();
 
+    public void generateInterrupt(HIQ intr) {
+        queue.enqueue(intr);
+    }
 }

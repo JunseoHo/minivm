@@ -25,6 +25,12 @@
       "name": "sum_8000",
       "base": 59,
       "size": 12
+    },
+    {
+      "type": "executable",
+      "name": "write_hello",
+      "base": 71,
+      "size": 12
     }
   ]
 }

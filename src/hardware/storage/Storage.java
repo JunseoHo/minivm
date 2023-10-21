@@ -53,7 +53,7 @@ public class Storage extends IODevice {
             switch (intr.id) {
                 case HIQ.STAT_CHK -> send(new HIQ(HWName.CPU, HIQ.STAT_POS));
                 case HIQ.REQUEST_READ -> read((int) intr.values[0]);
-                case HIQ.REQUEST_WRITE -> write((int) intr.values[0], intr.values[1]);
+                case HIQ.REQUEST_WRITE -> write((int) intr.values[0], (Long) intr.values[1]);
             }
         }
     }

@@ -30,6 +30,10 @@ public class SIQ extends Event {
     public static final int REQUEST_FILE = 0x64;
     public static final int RESPONSE_FILE = 0x65;
     public static final int FILE_NOT_FOUND = 0x66;
+    public static final int REQUEST_IO_WRITE = 0x96;
+    public static final int RESPONSE_IO_WRITE = 0x97;
+    public static final int COMPLETE_IO = 0x98;
+
 
     @Override
     public String toString() {
