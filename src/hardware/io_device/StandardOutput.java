@@ -12,7 +12,7 @@ public class StandardOutput extends IODevice {
 
     public StandardOutput() {
         buffer = new ArrayList<>();
-        registerInterruptServiceRoutine(HIRQ.REQUEST_IO_WRITE, this::write);
+        registerInterruptServiceRoutine(HIRQ.REQUEST_WRITE, this::write);
     }
 
     @Override
@@ -26,8 +26,8 @@ public class StandardOutput extends IODevice {
         int base = (int) intr.values()[1];
         int size = (int) intr.values()[2];
         for (int index = 0; index < size; index++) {
-            send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_IO_READ, base + index, name()));
-            intr = receive(HIRQ.RESPONSE_IO_READ);
+            send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_READ, base + index, name()));
+            intr = receive(HIRQ.RESPONSE_READ);
             long value = (long) intr.values()[0];
             buffer.add((char) value);
         }

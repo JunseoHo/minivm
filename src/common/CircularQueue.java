@@ -1,7 +1,5 @@
 package common;
 
-import exception.QueueError;
-
 import java.util.ArrayList;
 import java.util.List;
 

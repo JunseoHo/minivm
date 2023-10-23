@@ -231,7 +231,7 @@ public class CPU extends Component<HIRQ> implements Runnable {
         int base = (int) (((int) IR_OPERAND_L & 0x3FF) + DS);
         int size = (int) IR_OPERAND_R;
         systemCall.generateIntr(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_IO_WRITE, port, base, size));
-        receive(HIRQ.RESPONSE_IO_WRITE);
+        receive(HIRQ.RESPONSE_WRITE);
     }
 
     @InterruptServiceRoutine

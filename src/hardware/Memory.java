@@ -22,7 +22,6 @@ public class Memory extends IODevice {
         // register interrupt service routines
         registerInterruptServiceRoutine(HIRQ.REQUEST_READ, this::read);
         registerInterruptServiceRoutine(HIRQ.REQUEST_WRITE, this::write);
-        registerInterruptServiceRoutine(HIRQ.REQUEST_IO_READ, this::read);
     }
 
     @Override

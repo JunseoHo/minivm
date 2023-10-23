@@ -73,7 +73,7 @@ public class ProcessManager extends OSModule {
             }
             send(new SIRQ(SWName.IO_MANAGER, SIRQ.REQUEST_IO_WRITE, runningProcessId, port, base, size));
             receive(SIRQ.RESPONSE_IO_WRITE);
-            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_IO_WRITE));
+            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_WRITE));
         }
 
         @InterruptServiceRoutine
