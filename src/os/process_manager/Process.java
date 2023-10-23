@@ -1,12 +1,7 @@
 package os.process_manager;
 
-import common.CircularQueue;
-import hardware.HIQ;
 import hardware.cpu.Context;
 import os.memory_manager.Page;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Process {
 

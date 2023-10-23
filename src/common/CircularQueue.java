@@ -6,9 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CircularQueue<T> {
-
-    private static final int MAX_SIZE = 8192, MIN_SIZE = 2, DEFAULT_SIZE = 1024;
-    private int front = 0, rear = 0, currentSize = 0, queueSize = 0;
+    // constants
+    private static final int MAX_SIZE = 8192;
+    private static final int MIN_SIZE = 2;
+    private static final int DEFAULT_SIZE = 1024;
+    // working variables
+    private int front = 0;
+    private int rear = 0;
+    private int currentSize = 0;
+    private int queueSize = 0;
+    // container
     private List<T> queue;
 
     public CircularQueue() {
@@ -30,27 +37,19 @@ public class CircularQueue<T> {
     }
 
     public synchronized boolean enqueue(T o) {
-        try {
-            if (isFull()) throw new QueueError("Queue is full.");
-            queue.set(rear++, o);
-            if (rear == queueSize) rear = 0;
-            ++currentSize;
-            return true;
-        } catch (QueueError e) {
-            return false;
-        }
+        if (isFull()) return false;
+        queue.set(rear++, o);
+        if (rear == queueSize) rear = 0;
+        ++currentSize;
+        return true;
     }
 
     public synchronized T dequeue() {
-        try {
-            if (isEmpty()) throw new QueueError("Queue is empty.");
-            T o = queue.get(front++);
-            if (front == queueSize) front = 0;
-            --currentSize;
-            return o;
-        } catch (QueueError e) {
-            return null;
-        }
+        if (isEmpty()) return null;
+        T o = queue.get(front++);
+        if (front == queueSize) front = 0;
+        --currentSize;
+        return o;
     }
 
     public int size() {
@@ -63,14 +62,13 @@ public class CircularQueue<T> {
 
     @Override
     public String toString() {
-        String str = "";
-        if (front < rear) {
-            for (int index = front; index < rear; index++) str += queue.get(index) + " ";
-        } else if (front > rear) {
+        String str = "[ ";
+        if (front < rear) for (int index = front; index < rear; index++) str += queue.get(index) + " ";
+        else if (front > rear) {
             for (int index = front; index < queueSize; index++) str += queue.get(index) + " ";
             for (int index = 0; index < rear; index++) str += queue.get(index) + " ";
         } else str = "empty";
-        return str;
+        return str + " ]";
     }
 
 }

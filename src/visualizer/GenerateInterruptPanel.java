@@ -1,6 +1,6 @@
 package visualizer;
 
-import os.SIQ;
+import os.SIRQ;
 import os.SWName;
 import os.SystemCall;
 
@@ -25,8 +25,8 @@ public class GenerateInterruptPanel extends JPanel {
         add(new JButton("REQUEST_LOAD_PROCESS"));
     }
 
-    private SIQ REQUEST_LOAD_PROCESS() {
-        return new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_LOAD_PROCESS, "write_hello");
+    private SIRQ REQUEST_LOAD_PROCESS() {
+        return new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_LOAD_PROCESS, "write_hello");
     }
 
 }

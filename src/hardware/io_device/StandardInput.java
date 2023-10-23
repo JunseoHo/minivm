@@ -1,28 +1,26 @@
 package hardware.io_device;
 
+import hardware.HIRQ;
+
 public class StandardInput extends IODevice {
-    @Override
-    public void read(int addr) {
-
-    }
-
-    @Override
-    public void write(int addr, long val) {
-
-    }
-
-    @Override
-    public void handleInterrupt() {
-
-    }
-
-    @Override
-    public void run() {
-
-    }
 
     @Override
     public String toString(){
         return "Stdin";
+    }
+
+    @Override
+    public void read(HIRQ intr) {
+
+    }
+
+    @Override
+    public void write(HIRQ intr) {
+
+    }
+
+    @Override
+    public int bufferSize() {
+        return 0;
     }
 }

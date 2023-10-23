@@ -3,87 +3,75 @@ package common.bus;
 import common.CircularQueue;
 import common.bus.Bus;
 import common.bus.Event;
-import exception.BusError;
 
 import java.util.List;
 
 public class Component<T extends Event> {
 
     private Bus<T> bus;
-    protected String name;
-    protected CircularQueue<T> queue = new CircularQueue<>();
+    private String name;
+    protected CircularQueue<T> queue;
+
+    public Component() {
+        bus = null;
+        name = null;
+        queue = new CircularQueue<>();
+    }
 
     public boolean associate(Bus<T> bus, String name) {
-        try {
-            if (bus == null) throw new BusError("Bus is null.");
-            if (name == null) throw new BusError("Component name is null.");
-            if (this.bus != null) throw new BusError("Bus has already been associated.");
-            if (this.name != null) throw new BusError("Component name has already been defined.");
-            this.bus = bus;
-            this.name = name;
-            return bus.register(name);
-        } catch (BusError e) {
-            return false;
-        }
+        if (bus == null || name == null || this.bus != null || this.name != null) return false;
+        this.bus = bus;
+        this.name = name;
+        return bus.register(name);
+    }
+
+    public String name() {
+        return name;
     }
 
     protected boolean send(T o) {
-        try {
-            if (bus == null) throw new BusError("Bus is null.");
-            //System.out.printf("%-16s%-11s%-12s\n", name, " sent ", o);
-            return bus.send(o);
-        } catch (BusError e) {
-            return false;
-        }
+        if (bus == null) return false;
+        return bus.send(o);
     }
 
     protected T tryReceive() {
-        try {
-            if (bus == null) throw new BusError("Bus is null.");
-            if (name == null) throw new BusError("Component name is null.");
-            return bus.receive(name);
-        } catch (BusError e) {
-            return null;
-        }
+        if (bus == null || name == null) return null;
+        return bus.receive(name);
     }
 
     protected T receive() {
-        try {
-            if (bus == null) throw new BusError("Bus is null.");
-            if (name == null) throw new BusError("Component name is null.");
-            T o;
-            while ((o = tryReceive()) == null) ;
-            //System.out.printf("%-16s%-11s%-12s\n", name, " received ", o);
-            return o;
-        } catch (BusError e) {
-            return null;
-        }
+        if (bus == null || name == null) return null;
+        T o;
+        while ((o = tryReceive()) == null) ;
+        return o;
     }
 
     protected T receive(int... targetIds) {
-        try {
-            if (bus == null) throw new BusError("Bus is null.");
-            if (name == null) throw new BusError("Component name is null.");
-            while (true) {
-                T o = receive();
-                for (int id : targetIds) {
-                    if (o.id == id) return o;
-                }
-                queue.enqueue(o);
-            }
-        } catch (BusError e) {
-            return null;
+        if (bus == null || name == null) return null;
+        while (true) {
+            T o = receive();
+            for (int id : targetIds) if (o.id() == id) return o;
+            queue.enqueue(o);
         }
     }
 
     protected List<T> receiveAll() {
-        try {
-            if (bus == null) throw new BusError("Bus is null.");
-            if (name == null) throw new BusError("Component name is null.");
-            return bus.receiveAll(name);
-        } catch (BusError e) {
-            return null;
-        }
+        if (bus == null || name == null) return null;
+        return bus.receiveAll(name);
+    }
+
+    protected boolean enqueue(T o) {
+        if (o == null) return false;
+        return queue.enqueue(o);
+    }
+
+    protected T dequeue() {
+        if (queue.isEmpty()) return null;
+        return queue.dequeue();
+    }
+
+    protected boolean isEmpty() {
+        return queue.isEmpty();
     }
 
 }

@@ -1,15 +1,19 @@
 package hardware.cpu;
 
+import common.InterruptServiceRoutine;
 import common.bus.Component;
 import common.Utils;
-import exception.ProcessorException;
-import hardware.HIQ;
+import hardware.HIRQ;
 import hardware.HWName;
-import os.SIQ;
+import hardware.HardwareInterruptServiceRoutine;
+import os.SIRQ;
 import os.SWName;
 import os.SystemCall;
 
-public class CPU extends Component<HIQ> implements Runnable {
+import java.util.HashMap;
+import java.util.Map;
+
+public class CPU extends Component<HIRQ> implements Runnable {
     // associations
     private SystemCall systemCall;
     // special-purpose registers
@@ -21,7 +25,8 @@ public class CPU extends Component<HIQ> implements Runnable {
     private long IR_OPERAND_L = 0;
     private long IR_OPERAND_R = 0;
     // status registers
-    private volatile boolean tasking = false; // Should be excluded from optimization
+    private volatile boolean POWER_ON = true;
+    private volatile boolean IDLE = true;
     // general-purpose registers
     private long AC = 0;
     // segment registers
@@ -29,10 +34,30 @@ public class CPU extends Component<HIQ> implements Runnable {
     private long DS = 0;
     // components
     private final Timer timer = new Timer(500);
-    // constants
+    private final Map<Integer, HardwareInterruptServiceRoutine> interruptVectorTable;
+    // addressing mode
     private static final int AM_IM = 0x00;
     private static final int AM_DI = 0x01;
     private static final int AM_ID = 0x02;
+    // opcode
+    private static final int OP_HLT = 0x00;
+    private static final int OP_LDA = 0x01;
+    private static final int OP_STO = 0x02;
+    private static final int OP_ADD = 0x03;
+    private static final int OP_SUB = 0x04;
+    private static final int OP_MUL = 0x05;
+    private static final int OP_JMP = 0x06;
+    private static final int OP_JPZ = 0x07;
+    private static final int OP_RDM = 0x08;
+    private static final int OP_WRM = 0x09;
+    private static final int OP_INT = 0x0A;
+
+    public CPU() {
+        interruptVectorTable = new HashMap<>();
+        interruptVectorTable.put(HIRQ.COMPLETE_IO, (intr) -> COMPLETE_IO(intr));
+        interruptVectorTable.put(HIRQ.TIME_SLICE_EXPIRED, (intr) -> TIME_SLICE_EXPIRED(intr));
+        interruptVectorTable.put(HIRQ.HALT, (intr) -> HALT(intr));
+    }
 
     public void associate(SystemCall systemCall) {
         this.systemCall = systemCall;
@@ -47,7 +72,7 @@ public class CPU extends Component<HIQ> implements Runnable {
         context.IR_OPCODE = IR_OPCODE;
         context.IR_OPERAND_L = IR_OPERAND_L;
         context.IR_OPERAND_R = IR_OPERAND_R;
-        context.tasking = tasking;
+        context.IDLE = IDLE;
         context.AC = AC;
         context.CS = CS;
         context.DS = DS;
@@ -56,6 +81,7 @@ public class CPU extends Component<HIQ> implements Runnable {
     }
 
     public void restore(Context context) {
+        if (context == null) return;
         PC = context.PC;
         MAR = context.MAR;
         MBR = context.MBR;
@@ -63,50 +89,51 @@ public class CPU extends Component<HIQ> implements Runnable {
         IR_OPCODE = context.IR_OPCODE;
         IR_OPERAND_L = context.IR_OPERAND_L;
         IR_OPERAND_R = context.IR_OPERAND_R;
-        tasking = context.tasking;
+        IDLE = context.IDLE;
         AC = context.AC;
         CS = context.CS;
         DS = context.DS;
         queue = context.queue;
     }
 
-    public void switchTasking() {
-        tasking = !tasking;
+    public void switchStatus() {
+        IDLE = !IDLE;
+    }
+
+    public void generateInterrupt(HIRQ intr) {
+        send(intr);
     }
 
     @Override
     public void run() {
-        if (!POST()) return;
         systemCall.run();
         new Thread(timer).start();
         while (true) {
             handleInterrupt();
-            if (!tasking) continue;
+            if (!POWER_ON) break;
+            if (IDLE) continue;
             fetch();
             ++PC;
             decode();
             execute();
-            Utils.sleep(1000);
+            Utils.sleep(1000); // down clock
         }
     }
 
-    private boolean POST() {
-        if (!send(new HIQ(HWName.MEMORY, HIQ.STAT_CHK))) return false;
-        if (!send(new HIQ(HWName.STORAGE, HIQ.STAT_CHK))) return false;
-        if (receive(HIQ.STAT_POS, HIQ.STAT_NEG).id == HIQ.STAT_NEG) return false;
-        if (receive(HIQ.STAT_POS, HIQ.STAT_NEG).id == HIQ.STAT_NEG) return false;
-        return true;
+    private void handleInterrupt() {
+        for (HIRQ intr : receiveAll()) enqueue(intr);
+        while (!isEmpty()) {
+            HIRQ intr = dequeue();
+            HardwareInterruptServiceRoutine routine = interruptVectorTable.get(intr.id());
+            if (routine != null) routine.handle(intr);
+        }
     }
 
     private void fetch() {
-        try {
-            send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, MAR = CS + PC));
-            HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-            if (intr.id == HIQ.RESPONSE_READ) MBR = (Long) intr.values[0];
-            else throw new ProcessorException("Segmentation fault.");
-        } catch (ProcessorException e) {
-            switchTasking();
-        }
+        send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_READ, MAR = CS + PC, HWName.CPU));
+        HIRQ intr = receive(HIRQ.RESPONSE_READ, HIRQ.SEGMENTATION_FAULT);
+        if (intr.id() == HIRQ.RESPONSE_READ) MBR = (Long) intr.values()[0];
+        else enqueue(new HIRQ(HWName.CPU, HIRQ.HALT)); // segmentation fault
     }
 
     private void decode() {
@@ -118,147 +145,119 @@ public class CPU extends Component<HIQ> implements Runnable {
 
     private void execute() {
         switch ((int) IR_OPCODE) {
-            case 0x00 -> halt();
-            case 0x01 -> load();
-            case 0x02 -> store();
-            case 0x03 -> add();
-            case 0x04 -> sub();
-            case 0x05 -> mul();
-            case 0x06 -> jump();
-            case 0x07 -> jumpZero();
-            case 0x08 -> read();
-            case 0x09 -> write();
-            case 0x0A -> intr();
+            case OP_HLT -> HLT();
+            case OP_LDA -> LDA();
+            case OP_STO -> STO();
+            case OP_ADD -> ADD();
+            case OP_SUB -> SUB();
+            case OP_MUL -> MUL();
+            case OP_JMP -> JMP();
+            case OP_JPZ -> JPZ();
+            case OP_RDM -> RDM();
+            case OP_WRM -> WRM();
+            case OP_INT -> INT();
         }
     }
 
-    private void halt() {
-        queue.enqueue(new HIQ(HWName.CPU, HIQ.HALT));
+    private void HLT() {
+        enqueue(new HIRQ(HWName.CPU, HIRQ.HALT));
     }
 
-    private void load() {
-        try {
-            if (IR_ADDRESSING_MODE == AM_IM) AC = IR_OPERAND_R;
-            else if (IR_ADDRESSING_MODE == AM_DI) {
-                send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
-                HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC = (Long) intr.values[0];
-                else throw new ProcessorException("Segmentation fault.");
-            }
-        } catch (ProcessorException e) {
-            switchTasking();
+    private void LDA() {
+        if (IR_ADDRESSING_MODE == AM_IM) AC = IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == AM_DI) {
+            send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_READ, DS + IR_OPERAND_R, HWName.CPU));
+            HIRQ intr = receive(HIRQ.RESPONSE_READ, HIRQ.SEGMENTATION_FAULT);
+            if (intr.id() == HIRQ.RESPONSE_READ) AC = (Long) intr.values()[0];
+            else new HIRQ(HWName.CPU, HIRQ.HALT); // segmentation fault
         }
     }
 
-    private void store() {
-        try {
-            send(new HIQ(HWName.MEMORY, HIQ.REQUEST_WRITE, DS + IR_OPERAND_R, AC));
-            if (receive(HIQ.RESPONSE_WRITE, HIQ.SEGFAULT).id == HIQ.SEGFAULT)
-                throw new ProcessorException("Segmentation fault.");
-        } catch (ProcessorException e) {
-            switchTasking();
+    private void STO() {
+        send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_WRITE, DS + IR_OPERAND_R, AC, HWName.CPU));
+        HIRQ intr = receive(HIRQ.RESPONSE_WRITE, HIRQ.SEGMENTATION_FAULT);
+        if (intr.id() == HIRQ.SEGMENTATION_FAULT) new HIRQ(HWName.CPU, HIRQ.HALT); // segmentation fault
+    }
+
+    private void ADD() {
+        if (IR_ADDRESSING_MODE == AM_IM) AC += IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == AM_DI) {
+            send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_READ, DS + IR_OPERAND_R, HWName.CPU));
+            HIRQ intr = receive(HIRQ.RESPONSE_READ, HIRQ.SEGMENTATION_FAULT);
+            if (intr.id() == HIRQ.RESPONSE_READ) AC += (Long) intr.values()[0];
+            else new HIRQ(HWName.CPU, HIRQ.HALT); // segmentation fault
         }
     }
 
-    private void add() {
-        try {
-            if (IR_ADDRESSING_MODE == AM_IM) AC += IR_OPERAND_R;
-            else if (IR_ADDRESSING_MODE == AM_DI) {
-                send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
-                HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC += (Long) intr.values[0];
-                else throw new ProcessorException("Segmentation fault.");
-            }
-        } catch (ProcessorException e) {
-            switchTasking();
+    private void SUB() {
+        if (IR_ADDRESSING_MODE == AM_IM) AC -= IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == AM_DI) {
+            send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_READ, DS + IR_OPERAND_R, HWName.CPU));
+            HIRQ intr = receive(HIRQ.RESPONSE_READ, HIRQ.SEGMENTATION_FAULT);
+            if (intr.id() == HIRQ.RESPONSE_READ) AC -= (Long) intr.values()[0];
+            else new HIRQ(HWName.CPU, HIRQ.HALT); // segmentation fault
         }
     }
 
-    private void sub() {
-        try {
-            if (IR_ADDRESSING_MODE == AM_IM) AC -= IR_OPERAND_R;
-            else if (IR_ADDRESSING_MODE == AM_DI) {
-                send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
-                HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC -= (Long) intr.values[0];
-                else throw new ProcessorException("Segmentation fault.");
-            }
-        } catch (ProcessorException e) {
-            switchTasking();
+    private void MUL() {
+        if (IR_ADDRESSING_MODE == AM_IM) AC *= IR_OPERAND_R;
+        else if (IR_ADDRESSING_MODE == AM_DI) {
+            send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_READ, DS + IR_OPERAND_R, HWName.CPU));
+            HIRQ intr = receive(HIRQ.RESPONSE_READ, HIRQ.SEGMENTATION_FAULT);
+            if (intr.id() == HIRQ.RESPONSE_READ) AC *= (Long) intr.values()[0];
+            else new HIRQ(HWName.CPU, HIRQ.HALT); // segmentation fault
         }
     }
 
-    private void mul() {
-        try {
-            if (IR_ADDRESSING_MODE == AM_IM) AC *= IR_OPERAND_R;
-            else if (IR_ADDRESSING_MODE == AM_DI) {
-                send(new HIQ(HWName.MEMORY, HIQ.REQUEST_READ, DS + IR_OPERAND_R));
-                HIQ intr = receive(HIQ.RESPONSE_READ, HIQ.SEGFAULT);
-                if (intr.id == HIQ.RESPONSE_READ) AC *= (Long) intr.values[0];
-                else throw new ProcessorException("Segmentation fault.");
-            }
-        } catch (ProcessorException e) {
-            switchTasking();
-        }
-    }
-
-    private void jump() {
+    private void JMP() {
         PC = IR_OPERAND_R;
     }
 
-    private void jumpZero() {
-        if (IR_ADDRESSING_MODE == AM_IM) if (AC == 0) jump();
-        if (IR_ADDRESSING_MODE == AM_DI) if (AC != 0) jump();
+    private void JPZ() {
+        if (IR_ADDRESSING_MODE == AM_IM) if (AC == 0) JMP();
+        if (IR_ADDRESSING_MODE == AM_DI) if (AC != 0) JMP();
     }
 
-    private void intr() {
-        queue.enqueue(new HIQ(HWName.CPU, (int) IR_OPERAND_L, IR_OPERAND_R));
+    private void INT() {
+        queue.enqueue(new HIRQ(HWName.CPU, (int) IR_OPERAND_L, IR_OPERAND_R));
     }
 
-    private void read() {
-
+    private void RDM() {
+        /* not implemented yet */
     }
 
-    private void write() {
-        // IR_OPERAND_L(13) -> PORT = (3), BASE = (10)
+    private void WRM() {
         int port = ((int) IR_OPERAND_L >> 10);
         int base = (int) (((int) IR_OPERAND_L & 0x3FF) + DS);
         int size = (int) IR_OPERAND_R;
-        systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_IO_WRITE, port, base, size));
-        receive(HIQ.RESPONSE_IO_WRITE);
+        systemCall.generateIntr(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_IO_WRITE, port, base, size));
+        receive(HIRQ.RESPONSE_IO_WRITE);
     }
 
-    public void generateInterrupt(HIQ intr) {
-        send(intr);
+    @InterruptServiceRoutine
+    private void COMPLETE_IO(HIRQ intr) {
+        int processId = (int) intr.values()[0];
+        systemCall.generateIntr(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.COMPLETE_IO, processId));
+        receive(HIRQ.RESPONSE_TERMINATE);
     }
 
-    private void handleInterrupt() {
-        for (HIQ intr : receiveAll()) queue.enqueue(intr);
-        while (!queue.isEmpty()) {
-            HIQ intr = queue.dequeue();
-            switch (intr.id) {
-                case HIQ.COMPLETE_IO -> {
-                    int processId = (int) intr.values[0];
-                    systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.COMPLETE_IO, processId));
-                    receive(HIQ.RESPONSE_TERMINATE);
-                }
-                case HIQ.TIME_SLICE_EXPIRED -> {
-                    systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_SWITCH_CONTEXT));
-                    receive(HIQ.RESPONSE_SWITCH_CONTEXT);
-                    timer.init();
-                }
-                case HIQ.HALT -> {
-                    systemCall.generateInterrupt(new SIQ(SWName.PROCESS_MANAGER, SIQ.REQUEST_TERMINATE_PROCESS));
-                    receive(HIQ.RESPONSE_TERMINATE);
-                }
-            }
-        }
+    @InterruptServiceRoutine
+    private void TIME_SLICE_EXPIRED(HIRQ intr) {
+        systemCall.generateIntr(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_SWITCH_CONTEXT));
+        receive(HIRQ.RESPONSE_TERMINATE);
+        timer.init();
+    }
+
+    @InterruptServiceRoutine
+    private void HALT(HIRQ intr) {
+        systemCall.generateIntr(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_TERMINATE_PROCESS));
+        receive(HIRQ.RESPONSE_TERMINATE);
     }
 
     private class Timer implements Runnable {
 
         private int time = 0;
-        private int clock;
+        private final int clock;
 
         public void init() {
             time = 0;
@@ -271,7 +270,7 @@ public class CPU extends Component<HIQ> implements Runnable {
         @Override
         public void run() {
             while (true) {
-                if (++time > 2) queue.enqueue(new HIQ(HWName.MEMORY, HIQ.TIME_SLICE_EXPIRED));
+                if (++time > 2) queue.enqueue(new HIRQ(HWName.MEMORY, HIRQ.TIME_SLICE_EXPIRED));
                 if (!Utils.sleep(clock)) return;
             }
         }

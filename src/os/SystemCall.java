@@ -2,7 +2,6 @@ package os;
 
 import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
-import os.file_manager.File;
 
 public interface SystemCall {
 
@@ -12,7 +11,7 @@ public interface SystemCall {
 
     void run();
 
-    void generateInterrupt(SIQ intr);
+    void generateIntr(SIRQ intr);
 
     String status(String swName);
 

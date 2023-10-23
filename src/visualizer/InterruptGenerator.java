@@ -1,9 +1,9 @@
 package visualizer;
 
-import os.SIQ;
+import os.SIRQ;
 
 public interface InterruptGenerator {
 
-     SIQ generateInterrupt();
+     SIRQ generateInterrupt();
 
 }

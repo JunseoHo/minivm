@@ -8,7 +8,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import os.OSModule;
-import os.SIQ;
+import os.SIRQ;
 import os.SWName;
 
 import java.io.FileReader;
@@ -23,7 +23,7 @@ public class FileManager extends OSModule {
 
     public FileManager() {
         super();
-        registerInterruptServiceRoutine(SIQ.REQUEST_FILE, (intr) -> getFile(intr));
+        registerInterruptServiceRoutine(SIRQ.REQUEST_FILE, (intr) -> getFile(intr));
     }
 
     @Override
@@ -33,14 +33,14 @@ public class FileManager extends OSModule {
     }
 
     @InterruptServiceRoutine
-    public void getFile(SIQ intr) {
+    public void getFile(SIRQ intr) {
         String fileName = (String) intr.values[0];
         for (File file : currentDir.children)
             if (file.name.equals(fileName)) {
-                send(new SIQ(SWName.PROCESS_MANAGER, SIQ.RESPONSE_FILE, file));
+                send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.RESPONSE_FILE, file));
                 return;
             }
-        send(new SIQ(SWName.PROCESS_MANAGER, SIQ.FILE_NOT_FOUND));
+        send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.FILE_NOT_FOUND));
     }
 
     private File createFileTree(JSONObject obj) {

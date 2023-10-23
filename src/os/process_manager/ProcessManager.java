@@ -3,11 +3,11 @@ package os.process_manager;
 import common.CircularQueue;
 import common.InterruptServiceRoutine;
 import exception.ProcessLoadException;
-import hardware.HIQ;
+import hardware.HIRQ;
 import hardware.HWName;
 import hardware.cpu.CPU;
 import os.OSModule;
-import os.SIQ;
+import os.SIRQ;
 import os.SWName;
 import os.file_manager.File;
 import os.file_manager.FileType;
@@ -31,11 +31,11 @@ public class ProcessManager extends OSModule {
         for (int processId = 0; processId < processIdQueue.capacity(); processId++)
             processIdQueue.enqueue(processId);
         // register interrupt service routines
-        registerInterruptServiceRoutine(SIQ.REQUEST_LOAD_PROCESS, (intr) -> loader.loadProcess(intr));
-        registerInterruptServiceRoutine(SIQ.REQUEST_SWITCH_CONTEXT, (intr) -> scheduler.switchContext(intr));
-        registerInterruptServiceRoutine(SIQ.REQUEST_TERMINATE_PROCESS, (intr) -> scheduler.terminate(intr));
-        registerInterruptServiceRoutine(SIQ.REQUEST_IO_WRITE, (intr) -> scheduler.ioWrite(intr));
-        registerInterruptServiceRoutine(SIQ.COMPLETE_IO, (intr) -> scheduler.ioComplete(intr));
+        registerInterruptServiceRoutine(SIRQ.REQUEST_LOAD_PROCESS, (intr) -> loader.loadProcess(intr));
+        registerInterruptServiceRoutine(SIRQ.REQUEST_SWITCH_CONTEXT, (intr) -> scheduler.switchContext(intr));
+        registerInterruptServiceRoutine(SIRQ.REQUEST_TERMINATE_PROCESS, (intr) -> scheduler.terminate(intr));
+        registerInterruptServiceRoutine(SIRQ.REQUEST_IO_WRITE, (intr) -> scheduler.ioWrite(intr));
+        registerInterruptServiceRoutine(SIRQ.COMPLETE_IO, (intr) -> scheduler.ioComplete(intr));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class ProcessManager extends OSModule {
         }
 
         @InterruptServiceRoutine
-        public void ioWrite(SIQ intr) {
+        public void ioWrite(SIRQ intr) {
             int runningProcessId = runningProcess.getId();
             int port = ((int) intr.values[0]);
             int base = ((int) intr.values[1]);
@@ -66,18 +66,18 @@ public class ProcessManager extends OSModule {
             blockQueue.add(runningProcess);
             if (readyQueue.isEmpty()) {
                 runningProcess = null;
-                cpu.switchTasking();
+                cpu.switchStatus();
             } else {
                 runningProcess = readyQueue.dequeue();
                 cpu.restore(runningProcess.save());
             }
-            send(new SIQ(SWName.IO_MANAGER, SIQ.REQUEST_IO_WRITE, runningProcessId, port, base, size));
-            receive(SIQ.RESPONSE_IO_WRITE);
-            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_IO_WRITE));
+            send(new SIRQ(SWName.IO_MANAGER, SIRQ.REQUEST_IO_WRITE, runningProcessId, port, base, size));
+            receive(SIRQ.RESPONSE_IO_WRITE);
+            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_IO_WRITE));
         }
 
         @InterruptServiceRoutine
-        public void ioComplete(SIQ intr) {
+        public void ioComplete(SIRQ intr) {
             int processId = (int) intr.values[0];
             for (int index = 0; index < blockQueue.size(); index++) {
                 Process process = blockQueue.get(index);
@@ -87,58 +87,58 @@ public class ProcessManager extends OSModule {
                     break;
                 }
             }
-            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_TERMINATE));
+            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
         }
 
-        public void terminate(SIQ intr) {
+        public void terminate(SIRQ intr) {
             processIdQueue.enqueue(runningProcess.getId());
             List<Page> pages = new ArrayList<>();
             pages.add(runningProcess.getCodeSegment());
             pages.add(runningProcess.getDataSegment());
             if (readyQueue.isEmpty()) {
                 runningProcess = null;
-                cpu.switchTasking();
+                cpu.switchStatus();
             } else {
                 runningProcess = readyQueue.dequeue();
                 cpu.restore(runningProcess.save());
             }
-            send(new SIQ(SWName.MEMORY_MANAGER, SIQ.REQUEST_FREE_PAGE, pages));
-            receive(SIQ.RESPONSE_FREE_PAGE);
-            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_TERMINATE));
+            send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_FREE_PAGE, pages));
+            receive(SIRQ.RESPONSE_FREE_PAGE);
+            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
         }
 
-        public void switchContext(SIQ intr) {
+        public void switchContext(SIRQ intr) {
             if (runningProcess != null && !readyQueue.isEmpty()) {
                 runningProcess.restore(cpu.save());
                 readyQueue.enqueue(runningProcess);
                 runningProcess = readyQueue.dequeue();
                 cpu.restore(runningProcess.save());
             }
-            cpu.generateInterrupt(new HIQ(HWName.CPU, HIQ.RESPONSE_SWITCH_CONTEXT));
+            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
         }
 
     }
 
     private class Loader {
 
-        public void loadProcess(SIQ intr) {
+        public void loadProcess(SIRQ intr) {
             try {
                 // resource allocation
                 String fileName = (String) intr.values[0];
-                send(new SIQ(SWName.FILE_MANAGER, SIQ.REQUEST_FILE, fileName));
-                intr = receive(SIQ.RESPONSE_FILE, SIQ.FILE_NOT_FOUND);
-                if (intr.id == SIQ.FILE_NOT_FOUND) throw new ProcessLoadException(intr.id);
+                send(new SIRQ(SWName.FILE_MANAGER, SIRQ.REQUEST_FILE, fileName));
+                intr = receive(SIRQ.RESPONSE_FILE, SIRQ.FILE_NOT_FOUND);
+                if (intr.id == SIRQ.FILE_NOT_FOUND) throw new ProcessLoadException(intr.id);
                 File file = (File) intr.values[0];
                 if (file.type != FileType.EXECUTABLE) throw new ProcessLoadException(intr.id);
-                send(new SIQ(SWName.MEMORY_MANAGER, SIQ.REQUEST_PAGES, 2));
-                intr = receive(SIQ.RESPONSE_PAGES, SIQ.OUT_OF_MEMORY);
-                if (intr.id == SIQ.OUT_OF_MEMORY) throw new ProcessLoadException(intr.id);
+                send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_PAGES, 2));
+                intr = receive(SIRQ.RESPONSE_PAGES, SIRQ.OUT_OF_MEMORY);
+                if (intr.id == SIRQ.OUT_OF_MEMORY) throw new ProcessLoadException(intr.id);
                 // generate process
                 Process process = new Process(processIdQueue.dequeue());
                 List<Page> pages = (List<Page>) intr.values[0];
                 process.setPage(pages.get(0), pages.get(1));
-                send(new SIQ(SWName.MEMORY_MANAGER, SIQ.REQUEST_MEMORY_WRITE, pages.get(0).base, file.getRecords()));
-                receive(SIQ.RESPONSE_MEMORY_WRITE);
+                send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_MEMORY_WRITE, pages.get(0).base, file.getRecords()));
+                receive(SIRQ.RESPONSE_MEMORY_WRITE);
                 scheduler.admit(process);
             } catch (ProcessLoadException e) {
             }

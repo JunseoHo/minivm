@@ -4,14 +4,12 @@ import common.bus.Bus;
 import hardware.cpu.CPU;
 import hardware.HWName;
 import hardware.Memory;
-import hardware.HIQ;
+import hardware.HIRQ;
 import hardware.io_device.IODevice;
 import hardware.io_device.StandardInput;
 import hardware.io_device.StandardOutput;
 import hardware.storage.Storage;
 import os.OS;
-import os.SIQ;
-import os.SWName;
 import os.SystemCall;
 import visualizer.MiniVMVisualizer;
 
@@ -21,7 +19,7 @@ public class MiniVM {
 
     public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         // create hardware
-        Bus<HIQ> controlBus = new Bus();
+        Bus<HIRQ> controlBus = new Bus();
         CPU cpu = new CPU();
         IODevice memory = new Memory();
         IODevice storage = new Storage();
@@ -31,8 +29,8 @@ public class MiniVM {
         cpu.associate(controlBus, HWName.CPU);
         memory.associate(controlBus, HWName.MEMORY);
         storage.associate(controlBus, HWName.STORAGE);
-        stdin.associate(controlBus, HWName.STDIN);
-        stdout.associate(controlBus, HWName.STDOUT);
+        stdin.associate(controlBus, "IN");
+        stdout.associate(controlBus, "OUT");
         // create os and associate with hardware
         SystemCall os = new OS();
         os.associate(cpu);

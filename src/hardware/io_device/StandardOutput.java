@@ -1,6 +1,6 @@
 package hardware.io_device;
 
-import hardware.HIQ;
+import hardware.HIRQ;
 import hardware.HWName;
 
 import java.util.ArrayList;
@@ -12,51 +12,36 @@ public class StandardOutput extends IODevice {
 
     public StandardOutput() {
         buffer = new ArrayList<>();
+        registerInterruptServiceRoutine(HIRQ.REQUEST_IO_WRITE, this::write);
     }
 
     @Override
-    public void read(int addr) {
+    public void read(HIRQ intr) {
+        /* DO NOTHING */
     }
-
     @Override
-    public void write(int addr, long val) {
-
-    }
-
-    public void write(HIQ intr) {
+    public void write(HIRQ intr) {
         buffer.clear();
-        int processId = (int) intr.values[0];
-        int base = (int) intr.values[1];
-        int size = (int) intr.values[2];
+        int processId = (int) intr.values()[0];
+        int base = (int) intr.values()[1];
+        int size = (int) intr.values()[2];
         for (int index = 0; index < size; index++) {
-            send(new HIQ(HWName.MEMORY, HIQ.REQUEST_IO_READ, base + index, name));
-            intr = receive(HIQ.RESPONSE_IO_READ);
-            long value = (long) intr.values[0];
+            send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_IO_READ, base + index, name()));
+            intr = receive(HIRQ.RESPONSE_IO_READ);
+            long value = (long) intr.values()[0];
             buffer.add((char) value);
         }
-        send(new HIQ(HWName.CPU, HIQ.COMPLETE_IO, processId));
+        send(new HIRQ(HWName.CPU, HIRQ.COMPLETE_IO, processId));
     }
 
     @Override
-    public void handleInterrupt() {
-        if (queue.isEmpty()) return;
-        HIQ intr = queue.dequeue();
-        if (intr == null) return;
-        switch (intr.id) {
-            case HIQ.REQUEST_IO_WRITE -> write(intr);
-        }
-    }
-
-    @Override
-    public void run() {
-        while (true) {
-            handleInterrupt();
-        }
+    public int bufferSize() {
+        return buffer.size();
     }
 
     @Override
     public String toString() {
-        String str = "Stdout";
+        String str = name();
         if (!buffer.isEmpty()) {
             str += " -> ";
             for (char c : buffer) str += c;

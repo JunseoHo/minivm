@@ -1,16 +1,13 @@
 package os;
 
-import common.CircularQueue;
 import common.bus.Component;
 import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public abstract class OSModule extends Component<SIQ> implements Runnable {
+public abstract class OSModule extends Component<SIRQ> implements Runnable {
 
     private Map<Integer, InterruptServiceRoutine> interruptVectorTable;
 
@@ -31,9 +28,9 @@ public abstract class OSModule extends Component<SIQ> implements Runnable {
     }
 
     public void handleInterrupt() {
-        for (SIQ intr : receiveAll()) queue.enqueue(intr);
+        for (SIRQ intr : receiveAll()) queue.enqueue(intr);
         while (!queue.isEmpty()) {
-            SIQ intr = queue.dequeue();
+            SIRQ intr = queue.dequeue();
             interruptVectorTable.get(intr.id).processInterrupt(intr);
         }
     }

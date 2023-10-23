@@ -2,15 +2,15 @@ package os;
 
 import common.bus.Event;
 
-public class SIQ extends Event {
+public class SIRQ extends Event {
 
     public Object[] values;
 
-    public SIQ(String receiver, int id) {
+    public SIRQ(String receiver, int id) {
         this(receiver, id, null);
     }
 
-    public SIQ(String receiver, int id, Object... values) {
+    public SIRQ(String receiver, int id, Object... values) {
         this.receiver = receiver;
         this.id = id;
         this.values = values;

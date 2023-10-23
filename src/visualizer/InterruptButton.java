@@ -18,7 +18,7 @@ public class InterruptButton extends JButton {
     }
 
     public void generateInterrupt() {
-        systemCall.generateInterrupt(generator.generateInterrupt());
+        systemCall.generateIntr(generator.generateInterrupt());
     }
 
 }

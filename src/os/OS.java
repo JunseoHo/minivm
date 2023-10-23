@@ -6,13 +6,12 @@ import hardware.cpu.CPU;
 import hardware.Memory;
 import hardware.io_device.IODevice;
 import hardware.storage.Storage;
-import os.file_manager.File;
 import os.file_manager.FileManager;
 import os.io_manager.IOManager;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
 
-public class OS extends Component<SIQ> implements SystemCall {
+public class OS extends Component<SIRQ> implements SystemCall {
 
     private Bus interruptBus;
     private OSModule processManager;
@@ -35,7 +34,7 @@ public class OS extends Component<SIQ> implements SystemCall {
         ioManager.associate(interruptBus, SWName.IO_MANAGER);
     }
 
-    public void generateInterrupt(SIQ intr) {
+    public void generateIntr(SIRQ intr) {
         send(intr);
     }
 
