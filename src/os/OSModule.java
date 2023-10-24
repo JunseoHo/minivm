@@ -9,7 +9,7 @@ import java.util.Map;
 
 public abstract class OSModule extends Component<SIRQ> implements Runnable {
 
-    private Map<Integer, InterruptServiceRoutine> interruptVectorTable;
+    private Map<Integer, SoftwareInterruptServiceRoutine> interruptVectorTable;
 
     public OSModule() {
         interruptVectorTable = new HashMap<>();
@@ -23,7 +23,7 @@ public abstract class OSModule extends Component<SIRQ> implements Runnable {
         /* DO NOTHING */
     }
 
-    public void registerInterruptServiceRoutine(int interruptId, InterruptServiceRoutine isr) {
+    public void registerInterruptServiceRoutine(int interruptId, SoftwareInterruptServiceRoutine isr) {
         interruptVectorTable.put(interruptId, isr);
     }
 
@@ -31,7 +31,7 @@ public abstract class OSModule extends Component<SIRQ> implements Runnable {
         for (SIRQ intr : receiveAll()) queue.enqueue(intr);
         while (!queue.isEmpty()) {
             SIRQ intr = queue.dequeue();
-            interruptVectorTable.get(intr.id).processInterrupt(intr);
+            interruptVectorTable.get(intr.id()).handle(intr);
         }
     }
 

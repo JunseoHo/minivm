@@ -24,6 +24,6 @@ public class HIRQ extends Event {
 
     @Override
     public String toString() {
-        return "HIQ[" + id() + "]";
+        return "HIRQ[" + id() + "]";
     }
 }

@@ -2,7 +2,6 @@ package os.process_manager;
 
 import common.CircularQueue;
 import common.InterruptServiceRoutine;
-import exception.ProcessLoadException;
 import hardware.HIRQ;
 import hardware.HWName;
 import hardware.cpu.CPU;
@@ -17,7 +16,7 @@ import java.util.*;
 
 public class ProcessManager extends OSModule {
     // attributes
-    private static final int MAX_CONCURRENT_PROCESS = 10;
+    private static final int MAX_CONCURRENT_PROCESS = 5;
     // hardware
     private CPU cpu;
     // components
@@ -45,8 +44,8 @@ public class ProcessManager extends OSModule {
 
     private class Scheduler {
         private Process runningProcess;
-        private CircularQueue<Process> readyQueue = new CircularQueue<>();
-        private List<Process> blockQueue = new LinkedList<>();
+        private final CircularQueue<Process> readyQueue = new CircularQueue<>();
+        private final List<Process> blockQueue = new LinkedList<>();
 
         public void admit(Process process) {
             if (runningProcess == null) {
@@ -58,9 +57,9 @@ public class ProcessManager extends OSModule {
         @InterruptServiceRoutine
         public void ioWrite(SIRQ intr) {
             int runningProcessId = runningProcess.getId();
-            int port = ((int) intr.values[0]);
-            int base = ((int) intr.values[1]);
-            int size = ((int) intr.values[2]);
+            int port = ((int) intr.values()[0]);
+            int base = ((int) intr.values()[1]);
+            int size = ((int) intr.values()[2]);
             if (runningProcess == null) return;
             runningProcess.restore(cpu.save());
             blockQueue.add(runningProcess);
@@ -78,7 +77,7 @@ public class ProcessManager extends OSModule {
 
         @InterruptServiceRoutine
         public void ioComplete(SIRQ intr) {
-            int processId = (int) intr.values[0];
+            int processId = (int) intr.values()[0];
             for (int index = 0; index < blockQueue.size(); index++) {
                 Process process = blockQueue.get(index);
                 if (process.getId() == processId) {
@@ -122,26 +121,22 @@ public class ProcessManager extends OSModule {
     private class Loader {
 
         public void loadProcess(SIRQ intr) {
-            try {
-                // resource allocation
-                String fileName = (String) intr.values[0];
-                send(new SIRQ(SWName.FILE_MANAGER, SIRQ.REQUEST_FILE, fileName));
-                intr = receive(SIRQ.RESPONSE_FILE, SIRQ.FILE_NOT_FOUND);
-                if (intr.id == SIRQ.FILE_NOT_FOUND) throw new ProcessLoadException(intr.id);
-                File file = (File) intr.values[0];
-                if (file.type != FileType.EXECUTABLE) throw new ProcessLoadException(intr.id);
-                send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_PAGES, 2));
-                intr = receive(SIRQ.RESPONSE_PAGES, SIRQ.OUT_OF_MEMORY);
-                if (intr.id == SIRQ.OUT_OF_MEMORY) throw new ProcessLoadException(intr.id);
-                // generate process
-                Process process = new Process(processIdQueue.dequeue());
-                List<Page> pages = (List<Page>) intr.values[0];
-                process.setPage(pages.get(0), pages.get(1));
-                send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_MEMORY_WRITE, pages.get(0).base, file.getRecords()));
-                receive(SIRQ.RESPONSE_MEMORY_WRITE);
-                scheduler.admit(process);
-            } catch (ProcessLoadException e) {
-            }
+            // resource allocation
+            String fileName = (String) intr.values()[0];
+            send(new SIRQ(SWName.FILE_MANAGER, SIRQ.REQUEST_FILE, fileName));
+            intr = receive(SIRQ.RESPONSE_FILE, SIRQ.FILE_NOT_FOUND);
+            if (intr.id() == SIRQ.FILE_NOT_FOUND) return;
+            File file = (File) intr.values()[0];
+            if (file.type != FileType.EXECUTABLE) return;
+            send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_PAGES, 2));
+            intr = receive(SIRQ.RESPONSE_PAGES, SIRQ.OUT_OF_MEMORY);
+            if (intr.id() == SIRQ.OUT_OF_MEMORY) return;
+            // generate process
+            List<Page> pages = (List<Page>) intr.values()[0];
+            Process process = new Process(processIdQueue.dequeue(), pages.get(0), pages.get(1));
+            send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_MEMORY_WRITE, pages.get(0).base(), file.getRecords()));
+            receive(SIRQ.RESPONSE_MEMORY_WRITE);
+            scheduler.admit(process);
         }
     }
 

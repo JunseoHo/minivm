@@ -2,6 +2,8 @@ package os.memory_manager;
 
 import common.CircularQueue;
 import common.InterruptServiceRoutine;
+import hardware.HIRQ;
+import hardware.HWName;
 import hardware.Memory;
 import hardware.io_device.IODevice;
 import os.OSModule;
@@ -15,12 +17,12 @@ public class MemoryManager extends OSModule {
 
     private static final int PAGE_SIZE = 64;
     private Memory memory;
-    private CircularQueue<Page> pageQueue = new CircularQueue<>(100);
+    private final CircularQueue<Page> pageQueue = new CircularQueue<>(100);
 
     public MemoryManager() {
-        registerInterruptServiceRoutine(SIRQ.REQUEST_PAGES, (intr) -> getPages(intr));
-        registerInterruptServiceRoutine(SIRQ.REQUEST_MEMORY_WRITE, (intr) -> write(intr));
-        registerInterruptServiceRoutine(SIRQ.REQUEST_FREE_PAGE, (intr) -> freePages(intr));
+        registerInterruptServiceRoutine(SIRQ.REQUEST_PAGES, this::getPages);
+        registerInterruptServiceRoutine(SIRQ.REQUEST_MEMORY_WRITE, this::write);
+        registerInterruptServiceRoutine(SIRQ.REQUEST_FREE_PAGE, this::freePages);
     }
 
     @Override
@@ -36,7 +38,7 @@ public class MemoryManager extends OSModule {
 
     @InterruptServiceRoutine
     public synchronized void getPages(SIRQ intr) {
-        int pageNum = (int) intr.values[0];
+        int pageNum = (int) intr.values()[0];
         if (pageNum > pageQueue.size()) send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.OUT_OF_MEMORY));
         else {
             List<Page> pages = new ArrayList<>();
@@ -47,15 +49,15 @@ public class MemoryManager extends OSModule {
 
     @InterruptServiceRoutine
     public synchronized void write(SIRQ intr) {
-        int base = (int) intr.values[0];
-        List<Long> records = (List<Long>) intr.values[1];
-        for (Long record : records) memory.write(base++, record);
+        int base = (int) intr.values()[0];
+        List<Long> records = (List<Long>) intr.values()[1];
+        for (Long record : records) memory.writeRecord(base++, record);
         send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.RESPONSE_MEMORY_WRITE));
     }
 
     @InterruptServiceRoutine
     public synchronized void freePages(SIRQ intr) {
-        List<Page> pages = (List<Page>) intr.values[0];
+        List<Page> pages = (List<Page>) intr.values()[0];
         for (Page page : pages) pageQueue.enqueue(page);
         send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.RESPONSE_FREE_PAGE));
     }

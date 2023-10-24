@@ -21,6 +21,7 @@ public class StandardOutput extends IODevice {
     }
     @Override
     public void write(HIRQ intr) {
+        System.out.println("11");
         buffer.clear();
         int processId = (int) intr.values()[0];
         int base = (int) intr.values()[1];

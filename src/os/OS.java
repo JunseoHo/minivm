@@ -13,20 +13,13 @@ import os.process_manager.ProcessManager;
 
 public class OS extends Component<SIRQ> implements SystemCall {
 
-    private Bus interruptBus;
-    private OSModule processManager;
-    private OSModule memoryManager;
-    private OSModule fileManager;
-    private OSModule ioManager;
+    private final OSModule processManager = new ProcessManager();
+    private final OSModule memoryManager = new MemoryManager();
+    private final OSModule fileManager = new FileManager();
+    private final OSModule ioManager = new IOManager();
 
     public OS() {
-        // create OS modules
-        interruptBus = new Bus();
-        processManager = new ProcessManager();
-        memoryManager = new MemoryManager();
-        fileManager = new FileManager();
-        ioManager = new IOManager();
-        // associate interrupt bus with OS modules
+        Bus<SIRQ> interruptBus = new Bus<>();
         associate(interruptBus, SWName.OS);
         processManager.associate(interruptBus, SWName.PROCESS_MANAGER);
         memoryManager.associate(interruptBus, SWName.MEMORY_MANAGER);
@@ -39,9 +32,9 @@ public class OS extends Component<SIRQ> implements SystemCall {
     }
 
     @Override
-    public String status(String swName) {
+    public String status(String moduleName) {
         String status = "";
-        switch (swName) {
+        switch (moduleName) {
             case SWName.PROCESS_MANAGER -> status = processManager.toString();
             case SWName.MEMORY_MANAGER -> status = memoryManager.toString();
             case SWName.FILE_MANAGER -> status = fileManager.toString();
@@ -56,12 +49,12 @@ public class OS extends Component<SIRQ> implements SystemCall {
     }
 
     @Override
-    public void associate(IODevice ioDevice) {
-        if (ioDevice instanceof Memory memory) {
+    public void associate(IODevice device) {
+        if (device instanceof Memory memory) {
             processManager.associate(memory);
             memoryManager.associate(memory);
-        } else if (ioDevice instanceof Storage storage) fileManager.associate(storage);
-        else ioManager.associate(ioDevice);
+        } else if (device instanceof Storage storage) fileManager.associate(storage);
+        else ioManager.associate(device);
     }
 
     @Override

@@ -26,7 +26,9 @@ public class Memory extends IODevice {
 
     @Override
     public synchronized void read(HIRQ intr) {
-        int addr = (int) intr.values()[0];
+        int addr;
+        if (intr.values()[0] instanceof Integer) addr = (int) intr.values()[0];
+        else addr = ((Long) intr.values()[0]).intValue();
         String receiver = (String) intr.values()[1];
         if (addr < 0 || addr > size - 1) send(new HIRQ(receiver, HIRQ.SEGMENTATION_FAULT));
         else send(new HIRQ(receiver, HIRQ.RESPONSE_READ, memory[addr]));
@@ -34,7 +36,7 @@ public class Memory extends IODevice {
 
     @Override
     public synchronized void write(HIRQ intr) {
-        int addr = (int) intr.values()[0];
+        int addr = ((Long) intr.values()[0]).intValue();
         long val = (long) intr.values()[1];
         String receiver = (String) intr.values()[2];
         if (addr < 0 || addr > size - 1) send(new HIRQ(receiver, HIRQ.SEGMENTATION_FAULT));
@@ -46,4 +48,7 @@ public class Memory extends IODevice {
         return size;
     }
 
+    public void writeRecord(int addr, Long record) {
+        memory[addr] = record;
+    }
 }

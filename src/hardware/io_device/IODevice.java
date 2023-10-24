@@ -19,6 +19,7 @@ public abstract class IODevice extends Component<HIRQ> implements Runnable {
     protected void registerInterruptServiceRoutine(int interruptId, HardwareInterruptServiceRoutine routine) {
         interruptVectorTable.put(interruptId, routine);
     }
+
     private void handleInterrupt() {
         HIRQ intr;
         if ((intr = receive()) == null) return;
@@ -28,7 +29,14 @@ public abstract class IODevice extends Component<HIRQ> implements Runnable {
 
     @Override
     public void run() {
-        while (true) handleInterrupt();
+        while (true){
+            for (HIRQ intr : receiveAll()) enqueue(intr);
+            while (!isEmpty()) {
+                HIRQ intr = dequeue();
+                HardwareInterruptServiceRoutine routine = interruptVectorTable.get(intr.id());
+                if (routine != null) routine.handle(intr);
+            }
+        }
     }
 
     public void generateIntr(HIRQ intr) {

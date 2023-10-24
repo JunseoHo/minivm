@@ -4,19 +4,6 @@ import common.bus.Event;
 
 public class SIRQ extends Event {
 
-    public Object[] values;
-
-    public SIRQ(String receiver, int id) {
-        this(receiver, id, null);
-    }
-
-    public SIRQ(String receiver, int id, Object... values) {
-        this.receiver = receiver;
-        this.id = id;
-        this.values = values;
-    }
-
-    // interrupt ids
     public static final int REQUEST_LOAD_PROCESS = 0x00;
     public static final int REQUEST_SWITCH_CONTEXT = 0x01;
     public static final int REQUEST_TERMINATE_PROCESS = 0x02;
@@ -34,10 +21,17 @@ public class SIRQ extends Event {
     public static final int RESPONSE_IO_WRITE = 0x97;
     public static final int COMPLETE_IO = 0x98;
 
+    public SIRQ(String receiver, int id) {
+        this(receiver, id, null);
+    }
+
+    public SIRQ(String receiver, int id, Object... values) {
+        super(receiver, id, values);
+    }
 
     @Override
     public String toString() {
-        return "SIQ[" + id + "]";
+        return "SIRQ[" + id() + "]";
     }
 
 }

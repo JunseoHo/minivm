@@ -12,7 +12,7 @@ public class Context {
     public long IR_OPCODE = 0;
     public long IR_OPERAND_L = 0;
     public long IR_OPERAND_R = 0;
-    public boolean IDLE = true;
+    public boolean IDLE = false;
     public long AC = 0;
     public long CS = 0;
     public long DS = 0;

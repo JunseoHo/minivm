@@ -12,7 +12,7 @@ public class GenerateInterruptPanel extends JPanel {
     public GenerateInterruptPanel(SystemCall systemCall) {
         // set attributes
         setPreferredSize(new Dimension(250, 680));
-        add(new InterruptButton("REQUEST_LOAD_PROCESS", systemCall, () -> REQUEST_LOAD_PROCESS()));
+        add(new InterruptButton("REQUEST_LOAD_PROCESS", systemCall, this::REQUEST_LOAD_PROCESS));
         add(new JButton("REQUEST_LOAD_PROCESS"));
         add(new JButton("REQUEST_LOAD_PROCESS"));
         add(new JButton("REQUEST_LOAD_PROCESS"));

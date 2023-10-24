@@ -13,16 +13,16 @@ public class IOManager extends OSModule {
 
     public IOManager() {
         ioDeviceVector = new IODeviceVector();
-        registerInterruptServiceRoutine(SIRQ.REQUEST_IO_WRITE, (intr) -> write(intr));
+        registerInterruptServiceRoutine(SIRQ.REQUEST_IO_WRITE, this::write);
     }
 
     @InterruptServiceRoutine
     public void write(SIRQ intr) {
-        int processId = (int) intr.values[0];
-        int port = (int) intr.values[1];
-        int base = (int) intr.values[2];
-        int size = (int) intr.values[3];
-        ioDeviceVector.get(port).generateIntr(new HIRQ(null, HIRQ.REQUEST_IO_WRITE, processId, base, size));
+        int processId = (int) intr.values()[0];
+        int port = (int) intr.values()[1];
+        int base = (int) intr.values()[2];
+        int size = (int) intr.values()[3];
+        ioDeviceVector.get(port).generateIntr(new HIRQ(null, HIRQ.REQUEST_WRITE, processId, base, size));
         send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.RESPONSE_IO_WRITE));
     }
 

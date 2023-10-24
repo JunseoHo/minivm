@@ -34,7 +34,7 @@ public class FileManager extends OSModule {
 
     @InterruptServiceRoutine
     public void getFile(SIRQ intr) {
-        String fileName = (String) intr.values[0];
+        String fileName = (String) intr.values()[0];
         for (File file : currentDir.children)
             if (file.name.equals(fileName)) {
                 send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.RESPONSE_FILE, file));

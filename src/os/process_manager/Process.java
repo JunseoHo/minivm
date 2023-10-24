@@ -5,13 +5,17 @@ import os.memory_manager.Page;
 
 public class Process {
 
-    private int id;
-    private Page codeSegment;
-    private Page dataSegment;
+    private final int id;
+    private final Page codeSegment;
+    private final Page dataSegment;
     private Context context = new Context();
 
-    public Process(int id) {
+    public Process(int id, Page codeSegment, Page dataSegment) {
         this.id = id;
+        this.codeSegment = codeSegment;
+        this.dataSegment = dataSegment;
+        context.CS = codeSegment.base();
+        context.DS = dataSegment.base();
     }
 
     public int getId() {
@@ -24,13 +28,6 @@ public class Process {
 
     public void restore(Context context) {
         this.context = context;
-    }
-
-    public void setPage(Page codeSegment, Page dataSegment) {
-        this.codeSegment = codeSegment;
-        this.dataSegment = dataSegment;
-        context.CS = codeSegment.base;
-        context.DS = dataSegment.base;
     }
 
     public Page getCodeSegment() {
