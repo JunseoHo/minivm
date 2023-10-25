@@ -1,0 +1,12 @@
+im lda 0 87
+im sto 0 0
+im lda 0 111
+im sto 0 1
+im lda 0 114
+im sto 0 2
+im lda 0 108
+im sto 0 3
+im lda 0 100
+im sto 0 4
+im wrm 1 0 5
+im hlt 0 0
