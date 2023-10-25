@@ -1,6 +1,6 @@
 package hardware;
 
-public interface HardwareInterruptServiceRoutine {
+public interface HW_ISR {
 
     void handle(HIRQ intr);
 

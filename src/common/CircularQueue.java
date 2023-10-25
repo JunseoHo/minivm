@@ -60,13 +60,13 @@ public class CircularQueue<T> {
 
     @Override
     public String toString() {
-        String str = "[ ";
+        String str = "";
         if (front < rear) for (int index = front; index < rear; index++) str += queue.get(index) + " ";
         else if (front > rear) {
             for (int index = front; index < queueSize; index++) str += queue.get(index) + " ";
             for (int index = 0; index < rear; index++) str += queue.get(index) + " ";
-        } else str = "empty";
-        return str + " ]";
+        }
+        return str;
     }
 
 }

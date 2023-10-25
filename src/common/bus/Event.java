@@ -2,9 +2,9 @@ package common.bus;
 
 public class Event {
 
-    private String receiver;
-    private int id;
-    private Object[] values;
+    private final String receiver;
+    private final int id;
+    private final Object[] values;
 
     public Event(String receiver, int id, Object... values) {
         this.receiver = receiver;
@@ -12,9 +12,7 @@ public class Event {
         this.values = values;
     }
 
-    public String receiver() {
-        return receiver;
-    }
+    public String receiver() { return receiver; }
 
     public int id() {
         return id;

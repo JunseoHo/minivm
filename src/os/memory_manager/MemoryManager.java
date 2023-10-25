@@ -51,7 +51,7 @@ public class MemoryManager extends OSModule {
     public synchronized void write(SIRQ intr) {
         int base = (int) intr.values()[0];
         List<Long> records = (List<Long>) intr.values()[1];
-        for (Long record : records) memory.writeRecord(base++, record);
+        for (Long record : records) memory.writeBuffer(base++, record);
         send(new SIRQ(SWName.PROCESS_MANAGER, SIRQ.RESPONSE_MEMORY_WRITE));
     }
 

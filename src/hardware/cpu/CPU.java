@@ -3,9 +3,10 @@ package hardware.cpu;
 import common.InterruptServiceRoutine;
 import common.bus.Component;
 import common.Utils;
+import common.logger.MiniVMLogger;
 import hardware.HIRQ;
 import hardware.HWName;
-import hardware.HardwareInterruptServiceRoutine;
+import hardware.HW_ISR;
 import os.SIRQ;
 import os.SWName;
 import os.SystemCall;
@@ -34,7 +35,7 @@ public class CPU extends Component<HIRQ> implements Runnable {
     private long DS = 0;
     // components
     private final Timer timer = new Timer(500);
-    private final Map<Integer, HardwareInterruptServiceRoutine> interruptVectorTable;
+    private final Map<Integer, HW_ISR> interruptVectorTable = new HashMap<>();
     // addressing mode
     private static final int AM_IM = 0x00;
     private static final int AM_DI = 0x01;
@@ -53,10 +54,9 @@ public class CPU extends Component<HIRQ> implements Runnable {
     private static final int OP_INT = 0x0A;
 
     public CPU() {
-        interruptVectorTable = new HashMap<>();
-        interruptVectorTable.put(HIRQ.COMPLETE_IO, (intr) -> COMPLETE_IO(intr));
-        interruptVectorTable.put(HIRQ.TIME_SLICE_EXPIRED, (intr) -> TIME_SLICE_EXPIRED(intr));
-        interruptVectorTable.put(HIRQ.HALT, (intr) -> HALT(intr));
+        registerISR(HIRQ.COMPLETE_IO, this::COMPLETE_IO);
+        registerISR(HIRQ.TIME_SLICE_EXPIRED, this::TIME_SLICE_EXPIRED);
+        registerISR(HIRQ.HALT, this::HALT);
     }
 
     public void associate(SystemCall systemCall) {
@@ -96,18 +96,18 @@ public class CPU extends Component<HIRQ> implements Runnable {
         queue = context.queue;
     }
 
-    public void switchStatus() {
-        IDLE = !IDLE;
+    public void switchStatus(boolean stat) {
+        IDLE = stat;
     }
 
-    public void generateInterrupt(HIRQ intr) {
+    public void generateIntr(HIRQ intr) {
         send(intr);
     }
 
     @Override
     public void run() {
-        systemCall.run();
         new Thread(timer).start();
+        systemCall.run();
         while (true) {
             handleInterrupt();
             if (!POWER_ON) break;
@@ -120,12 +120,17 @@ public class CPU extends Component<HIRQ> implements Runnable {
         }
     }
 
+    private void registerISR(int intrId, HW_ISR isr) {
+        if (intrId < 0 || isr == null) MiniVMLogger.warn("CPU", "Invalid interrupt service routine is ignored.");
+        else interruptVectorTable.put(intrId, isr);
+    }
+
     private void handleInterrupt() {
         for (HIRQ intr : receiveAll()) enqueue(intr);
         while (!isEmpty()) {
             HIRQ intr = dequeue();
-            HardwareInterruptServiceRoutine routine = interruptVectorTable.get(intr.id());
-            if (routine != null) routine.handle(intr);
+            HW_ISR isr = interruptVectorTable.get(intr.id());
+            if (isr != null) isr.handle(intr);
         }
     }
 

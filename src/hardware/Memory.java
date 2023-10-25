@@ -3,52 +3,21 @@ package hardware;
 import hardware.io_device.IODevice;
 
 public class Memory extends IODevice {
-    // constants
-    private static final int MIN_SIZE = 128;
-    private static final int MAX_SIZE = 8192;
-    private static final int DEFAULT_SIZE = 1024;
-    // working variables
-    private int size;
-    private long[] memory;
 
     public Memory() {
-        this(DEFAULT_SIZE);
+        super();
+        init();
     }
 
     public Memory(int size) {
-        // create memory
-        if (size < MIN_SIZE || size > MAX_SIZE) size = DEFAULT_SIZE;
-        memory = new long[this.size = size];
-        // register interrupt service routines
-        registerInterruptServiceRoutine(HIRQ.REQUEST_READ, this::read);
-        registerInterruptServiceRoutine(HIRQ.REQUEST_WRITE, this::write);
+        super(size);
+        init();
     }
 
     @Override
-    public synchronized void read(HIRQ intr) {
-        int addr;
-        if (intr.values()[0] instanceof Integer) addr = (int) intr.values()[0];
-        else addr = ((Long) intr.values()[0]).intValue();
-        String receiver = (String) intr.values()[1];
-        if (addr < 0 || addr > size - 1) send(new HIRQ(receiver, HIRQ.SEGMENTATION_FAULT));
-        else send(new HIRQ(receiver, HIRQ.RESPONSE_READ, memory[addr]));
+    protected void init() {
+        registerISR(HIRQ.REQUEST_READ, this::read);
+        registerISR(HIRQ.REQUEST_WRITE, this::write);
     }
 
-    @Override
-    public synchronized void write(HIRQ intr) {
-        int addr = ((Long) intr.values()[0]).intValue();
-        long val = (long) intr.values()[1];
-        String receiver = (String) intr.values()[2];
-        if (addr < 0 || addr > size - 1) send(new HIRQ(receiver, HIRQ.SEGMENTATION_FAULT));
-        else send(new HIRQ(receiver, HIRQ.RESPONSE_WRITE, memory[addr] = val));
-    }
-
-    @Override
-    public int bufferSize() {
-        return size;
-    }
-
-    public void writeRecord(int addr, Long record) {
-        memory[addr] = record;
-    }
 }

@@ -58,14 +58,14 @@ public class FileManager extends OSModule {
             file.base = (long) obj.get("base");
             file.size = (long) obj.get("size");
             for (int index = 0; index < file.size; index++)
-                file.addRecord(storage.readRecord((int) (file.base + index)));
+                file.addRecord(storage.readBuffer((int) (file.base + index)));
         } else if (type.equals("data")) {
             file = new File(FileType.DATA);
             file.name = (String) obj.get("name");
             file.base = (long) obj.get("base");
             file.size = (long) obj.get("size");
             for (int index = 0; index < file.size; index++)
-                file.addRecord(storage.readRecord((int) (file.base + index)));
+                file.addRecord(storage.readBuffer((int) (file.base + index)));
         }
         return file;
     }

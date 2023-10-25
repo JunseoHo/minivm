@@ -65,14 +65,14 @@ public class ProcessManager extends OSModule {
             blockQueue.add(runningProcess);
             if (readyQueue.isEmpty()) {
                 runningProcess = null;
-                cpu.switchStatus();
+                cpu.switchStatus(true);
             } else {
                 runningProcess = readyQueue.dequeue();
                 cpu.restore(runningProcess.save());
             }
             send(new SIRQ(SWName.IO_MANAGER, SIRQ.REQUEST_IO_WRITE, runningProcessId, port, base, size));
             receive(SIRQ.RESPONSE_IO_WRITE);
-            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_WRITE));
+            cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.RESPONSE_WRITE));
         }
 
         @InterruptServiceRoutine
@@ -86,7 +86,7 @@ public class ProcessManager extends OSModule {
                     break;
                 }
             }
-            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
+            cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
         }
 
         public void terminate(SIRQ intr) {
@@ -96,14 +96,14 @@ public class ProcessManager extends OSModule {
             pages.add(runningProcess.getDataSegment());
             if (readyQueue.isEmpty()) {
                 runningProcess = null;
-                cpu.switchStatus();
+                cpu.switchStatus(true);
             } else {
                 runningProcess = readyQueue.dequeue();
                 cpu.restore(runningProcess.save());
             }
             send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_FREE_PAGE, pages));
             receive(SIRQ.RESPONSE_FREE_PAGE);
-            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
+            cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
         }
 
         public void switchContext(SIRQ intr) {
@@ -113,7 +113,7 @@ public class ProcessManager extends OSModule {
                 runningProcess = readyQueue.dequeue();
                 cpu.restore(runningProcess.save());
             }
-            cpu.generateInterrupt(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
+            cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
         }
 
     }

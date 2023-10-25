@@ -1,51 +1,56 @@
 package hardware.io_device;
 
+import common.Utils;
 import hardware.HIRQ;
 import hardware.HWName;
 
-import java.util.ArrayList;
-import java.util.List;
+public class Out extends IODevice {
 
-public class StandardOutput extends IODevice {
+    public Out() {
+        super();
+        init();
+    }
 
-    public List<Character> buffer;
+    public Out(int bufferSize) {
+        super(bufferSize);
+        init();
+    }
 
-    public StandardOutput() {
-        buffer = new ArrayList<>();
-        registerInterruptServiceRoutine(HIRQ.REQUEST_WRITE, this::write);
+    @Override
+    protected void init() {
+        registerISR(HIRQ.REQUEST_WRITE, this::write);
     }
 
     @Override
     public void read(HIRQ intr) {
         /* DO NOTHING */
     }
+
     @Override
     public void write(HIRQ intr) {
-        System.out.println("11");
-        buffer.clear();
+        flush();
         int processId = (int) intr.values()[0];
         int base = (int) intr.values()[1];
         int size = (int) intr.values()[2];
+        int addr = 0;
         for (int index = 0; index < size; index++) {
             send(new HIRQ(HWName.MEMORY, HIRQ.REQUEST_READ, base + index, name()));
             intr = receive(HIRQ.RESPONSE_READ);
             long value = (long) intr.values()[0];
-            buffer.add((char) value);
+            writeBuffer(addr++, (char) value);
+            Utils.sleep(1000); // down clock
         }
         send(new HIRQ(HWName.CPU, HIRQ.COMPLETE_IO, processId));
     }
 
     @Override
-    public int bufferSize() {
-        return buffer.size();
-    }
-
-    @Override
     public String toString() {
         String str = name();
-        if (!buffer.isEmpty()) {
-            str += " -> ";
-            for (char c : buffer) str += c;
+        str += " -> ";
+        for (int addr = 0; addr < bufferSize(); addr++) {
+            char c = (char) readBuffer(addr);
+            if (c == '\0') break;
+            else str += c;
         }
         return str;
     }
