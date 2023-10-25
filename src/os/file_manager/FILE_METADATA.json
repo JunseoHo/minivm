@@ -4,33 +4,15 @@
   "files": [
     {
       "type": "executable",
-      "name": "Sum",
+      "name": "hello_world",
       "base": 0,
-      "size": 14
-    },
-    {
-      "type": "data",
-      "name": "helloworld",
-      "base": 16,
-      "size": 13
+      "size": 128
     },
     {
       "type": "executable",
-      "name": "fibonacci_30",
-      "base": 31,
-      "size": 25
-    },
-    {
-      "type": "executable",
-      "name": "sum_8000",
-      "base": 59,
-      "size": 12
-    },
-    {
-      "type": "executable",
-      "name": "write_hello",
-      "base": 71,
-      "size": 12
+      "name": "no_pain_no_gain",
+      "base": 128,
+      "size": 128
     }
   ]
 }

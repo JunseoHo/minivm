@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-public class MiniVMCompiler {
+public class MiniVMBuilder {
 
     private static final String PROGRAM_PATH = "./assembly_source_sample/";
 
@@ -26,8 +26,13 @@ public class MiniVMCompiler {
         // compile
         List<String> machineCodes = new LinkedList<>();
         Scanner tokenizer = new Scanner(file);
+        if (!tokenizer.hasNextLine() || !tokenizer.nextLine().equals(".code")) {
+            System.out.println(".code not found.");
+            return;
+        }
         while (tokenizer.hasNextLine()) {
             String line = tokenizer.nextLine();
+            if (line.equals(".data")) break;
             String[] inst = line.trim().split(" ");
             String machineCode = "";
             String addressingMode = inst[0];
@@ -86,9 +91,22 @@ public class MiniVMCompiler {
             // add machine code
             machineCodes.add(machineCode);
         }
+        if (machineCodes.size() > 64) {
+            System.out.println("Code is too big.");
+            return;
+        }
+        while (machineCodes.size() < 64) machineCodes.add("00000000000000000000000000000000");
+        List<String> data = new LinkedList<>();
+        while (tokenizer.hasNextLine()) data.add(tokenizer.nextLine());
+        if (data.size() > 64) {
+            System.out.println("Data is too big.");
+            return;
+        }
+        while (data.size() < 64) data.add("00000000000000000000000000000000");
         // print
-        for (String inst : machineCodes) System.out.println(inst);
-        System.out.println("\nSize : " + machineCodes.size());
+        for (String machineCode : machineCodes) System.out.println(Long.parseLong(machineCode, 2));
+        for (String d : data) System.out.println(Long.parseLong(d));
+        System.out.println("\nSize : " + (machineCodes.size() + data.size()));
     }
 
     public static String parseOperand(String operand, int limit) {

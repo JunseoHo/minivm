@@ -13,7 +13,7 @@ public class IOManager extends OSModule {
 
     public IOManager() {
         ioDeviceVector = new IODeviceVector();
-        registerInterruptServiceRoutine(SIRQ.REQUEST_IO_WRITE, this::write);
+        registerISR(SIRQ.REQUEST_IO_WRITE, this::write);
     }
 
     @InterruptServiceRoutine

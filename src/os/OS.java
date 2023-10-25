@@ -19,14 +19,15 @@ public class OS extends Component<SIRQ> implements SystemCall {
     private final OSModule ioManager = new IOManager();
 
     public OS() {
-        Bus<SIRQ> interruptBus = new Bus<>();
-        associate(interruptBus, SWName.OS);
-        processManager.associate(interruptBus, SWName.PROCESS_MANAGER);
-        memoryManager.associate(interruptBus, SWName.MEMORY_MANAGER);
-        fileManager.associate(interruptBus, SWName.FILE_MANAGER);
-        ioManager.associate(interruptBus, SWName.IO_MANAGER);
+        Bus<SIRQ> intrBus = new Bus<>();
+        associate(intrBus, SWName.OS);
+        processManager.associate(intrBus, SWName.PROCESS_MANAGER);
+        memoryManager.associate(intrBus, SWName.MEMORY_MANAGER);
+        fileManager.associate(intrBus, SWName.FILE_MANAGER);
+        ioManager.associate(intrBus, SWName.IO_MANAGER);
     }
 
+    @Override
     public void generateIntr(SIRQ intr) {
         send(intr);
     }

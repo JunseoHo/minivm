@@ -8,15 +8,15 @@ public class MiniVMLogger {
     public static final String END = "\u001B[0m";
 
     public static void info(String host, String message) {
-        System.out.printf(GREEN + "INFO  " + END + "|%-10s : " + message + "\n", host);
+        System.out.printf(GREEN + "INFO  " + END + "|%-16s : " + message + "\n", host);
     }
 
     public static void warn(String host, String message) {
-        System.out.printf(YELLOW + "WARN  " + END + "|%-10s : " + message + "\n", host);
+        System.out.printf(YELLOW + "WARN  " + END + "|%-16s : " + message + "\n", host);
     }
 
     public static void error(String host, String message) {
-        System.out.printf(RED + "ERROR " + END + "|%-10s : " + message + "\n", host);
+        System.out.printf(RED + "ERROR " + END + "|%-16s : " + message + "\n", host);
     }
 
 }

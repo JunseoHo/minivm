@@ -23,7 +23,7 @@ public class FileManager extends OSModule {
 
     public FileManager() {
         super();
-        registerInterruptServiceRoutine(SIRQ.REQUEST_FILE, (intr) -> getFile(intr));
+        registerISR(SIRQ.REQUEST_FILE, (intr) -> getFile(intr));
     }
 
     @Override

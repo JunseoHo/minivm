@@ -24,6 +24,19 @@ public class HIRQ extends Event {
 
     @Override
     public String toString() {
-        return "HIRQ[" + id() + "]";
+        String intrName;
+        switch (id()) {
+            case REQUEST_READ -> intrName = "REQUEST_READ";
+            case RESPONSE_READ -> intrName = "RESPONSE_READ";
+            case REQUEST_WRITE -> intrName = "REQUEST_WRITE";
+            case RESPONSE_WRITE -> intrName = "RESPONSE_WRITE";
+            case RESPONSE_TERMINATE -> intrName = "RESPONSE_TERMINATE";
+            case COMPLETE_IO -> intrName = "COMPLETE_IO";
+            case HALT -> intrName = "HALT";
+            case TIME_SLICE_EXPIRED -> intrName = "TIME_SLICE_EXPIRED";
+            case SEGMENTATION_FAULT -> intrName = "SEGMENTATION_FAULT";
+            default -> intrName = "Unknown";
+        }
+        return "HIRQ[" + intrName + "]";
     }
 }

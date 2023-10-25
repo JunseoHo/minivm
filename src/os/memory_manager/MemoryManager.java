@@ -2,8 +2,6 @@ package os.memory_manager;
 
 import common.CircularQueue;
 import common.InterruptServiceRoutine;
-import hardware.HIRQ;
-import hardware.HWName;
 import hardware.Memory;
 import hardware.io_device.IODevice;
 import os.OSModule;
@@ -20,9 +18,9 @@ public class MemoryManager extends OSModule {
     private final CircularQueue<Page> pageQueue = new CircularQueue<>(100);
 
     public MemoryManager() {
-        registerInterruptServiceRoutine(SIRQ.REQUEST_PAGES, this::getPages);
-        registerInterruptServiceRoutine(SIRQ.REQUEST_MEMORY_WRITE, this::write);
-        registerInterruptServiceRoutine(SIRQ.REQUEST_FREE_PAGE, this::freePages);
+        registerISR(SIRQ.REQUEST_PAGES, this::getPages);
+        registerISR(SIRQ.REQUEST_MEMORY_WRITE, this::write);
+        registerISR(SIRQ.REQUEST_FREE_PAGE, this::freePages);
     }
 
     @Override

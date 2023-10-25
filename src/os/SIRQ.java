@@ -31,7 +31,27 @@ public class SIRQ extends Event {
 
     @Override
     public String toString() {
-        return "SIRQ[" + id() + "]";
+        String intrName;
+        switch (id()) {
+            case REQUEST_LOAD_PROCESS -> intrName = "REQUEST_LOAD_PROCESS";
+            case REQUEST_SWITCH_CONTEXT -> intrName = "REQUEST_SWITCH_CONTEXT";
+            case REQUEST_TERMINATE_PROCESS -> intrName = "REQUEST_TERMINATE_PROCESS";
+            case REQUEST_PAGES -> intrName = "REQUEST_PAGES";
+            case RESPONSE_PAGES -> intrName = "RESPONSE_PAGES";
+            case OUT_OF_MEMORY -> intrName = "OUT_OF_MEMORY";
+            case REQUEST_MEMORY_WRITE -> intrName = "REQUEST_MEMORY_WRITE";
+            case RESPONSE_MEMORY_WRITE -> intrName = "RESPONSE_MEMORY_WRITE";
+            case REQUEST_FREE_PAGE -> intrName = "REQUEST_FREE_PAGE";
+            case RESPONSE_FREE_PAGE -> intrName = "RESPONSE_FREE_PAGE";
+            case REQUEST_FILE -> intrName = "REQUEST_FILE";
+            case RESPONSE_FILE -> intrName = "RESPONSE_FILE";
+            case FILE_NOT_FOUND -> intrName = "FILE_NOT_FOUND";
+            case REQUEST_IO_WRITE -> intrName = "REQUEST_IO_WRITE";
+            case RESPONSE_IO_WRITE -> intrName = "RESPONSE_IO_WRITE";
+            case COMPLETE_IO -> intrName = "COMPLETE_IO";
+            default -> intrName = "Unknown";
+        }
+        return "SIRQ[" + intrName + "]";
     }
 
 }

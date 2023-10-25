@@ -3,6 +3,7 @@ package common.bus;
 import common.CircularQueue;
 import common.bus.Bus;
 import common.bus.Event;
+import common.logger.MiniVMLogger;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class Component<T extends Event> {
 
     protected boolean send(T o) {
         if (bus == null) return false;
+        MiniVMLogger.info(name(), "Sent " + o);
         return bus.send(o);
     }
 
@@ -43,6 +45,7 @@ public class Component<T extends Event> {
         if (bus == null || name == null) return null;
         T o;
         while ((o = tryReceive()) == null) ;
+        MiniVMLogger.info(name(), "Received " + o);
         return o;
     }
 

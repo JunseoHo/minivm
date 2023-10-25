@@ -2,12 +2,15 @@ package os.process_manager;
 
 import common.CircularQueue;
 import common.InterruptServiceRoutine;
+import common.Utils;
+import common.logger.MiniVMLogger;
 import hardware.HIRQ;
 import hardware.HWName;
 import hardware.cpu.CPU;
 import os.OSModule;
 import os.SIRQ;
 import os.SWName;
+import os.file_manager.Executable;
 import os.file_manager.File;
 import os.file_manager.FileType;
 import os.memory_manager.Page;
@@ -16,30 +19,33 @@ import java.util.*;
 
 public class ProcessManager extends OSModule {
     // attributes
-    private static final int MAX_CONCURRENT_PROCESS = 5;
+    private int loadedProcess = 0;
+    private static final int MAX_CONCURRENT_PROCESS = 4;
     // hardware
     private CPU cpu;
     // components
-    private Scheduler scheduler = new Scheduler();
-    private Loader loader = new Loader();
+    private final Scheduler scheduler = new Scheduler();
+    private final Loader loader = new Loader();
     private CircularQueue<Integer> processIdQueue;
 
     public ProcessManager() {
-        // create process id queue
-        processIdQueue = new CircularQueue<>(MAX_CONCURRENT_PROCESS);
-        for (int processId = 0; processId < processIdQueue.capacity(); processId++)
-            processIdQueue.enqueue(processId);
-        // register interrupt service routines
-        registerInterruptServiceRoutine(SIRQ.REQUEST_LOAD_PROCESS, (intr) -> loader.loadProcess(intr));
-        registerInterruptServiceRoutine(SIRQ.REQUEST_SWITCH_CONTEXT, (intr) -> scheduler.switchContext(intr));
-        registerInterruptServiceRoutine(SIRQ.REQUEST_TERMINATE_PROCESS, (intr) -> scheduler.terminate(intr));
-        registerInterruptServiceRoutine(SIRQ.REQUEST_IO_WRITE, (intr) -> scheduler.ioWrite(intr));
-        registerInterruptServiceRoutine(SIRQ.COMPLETE_IO, (intr) -> scheduler.ioComplete(intr));
+        createProcessIdQueue();
+        registerISR(SIRQ.REQUEST_LOAD_PROCESS, loader::loadProcess);
+        registerISR(SIRQ.REQUEST_SWITCH_CONTEXT, scheduler::switchContext);
+        registerISR(SIRQ.REQUEST_TERMINATE_PROCESS, scheduler::terminate);
+        registerISR(SIRQ.REQUEST_IO_WRITE, scheduler::ioWrite);
+        registerISR(SIRQ.COMPLETE_IO, scheduler::ioComplete);
     }
 
     @Override
     public void associate(CPU cpu) {
         this.cpu = cpu;
+    }
+
+    private void createProcessIdQueue() {
+        processIdQueue = new CircularQueue<>(MAX_CONCURRENT_PROCESS);
+        for (int processId = 0; processId < processIdQueue.capacity(); processId++)
+            processIdQueue.enqueue(processId);
     }
 
     private class Scheduler {
@@ -104,6 +110,7 @@ public class ProcessManager extends OSModule {
             send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_FREE_PAGE, pages));
             receive(SIRQ.RESPONSE_FREE_PAGE);
             cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
+            --loadedProcess;
         }
 
         public void switchContext(SIRQ intr) {
@@ -121,6 +128,10 @@ public class ProcessManager extends OSModule {
     private class Loader {
 
         public void loadProcess(SIRQ intr) {
+            if (loadedProcess == MAX_CONCURRENT_PROCESS) {
+                MiniVMLogger.error("ProcessManager", "Max concurrent processes have been loaded.");
+                return;
+            }
             // resource allocation
             String fileName = (String) intr.values()[0];
             send(new SIRQ(SWName.FILE_MANAGER, SIRQ.REQUEST_FILE, fileName));
@@ -134,9 +145,13 @@ public class ProcessManager extends OSModule {
             // generate process
             List<Page> pages = (List<Page>) intr.values()[0];
             Process process = new Process(processIdQueue.dequeue(), pages.get(0), pages.get(1));
-            send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_MEMORY_WRITE, pages.get(0).base(), file.getRecords()));
+            Executable exe = new Executable(file);
+            send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_MEMORY_WRITE, pages.get(0).base(), exe.getInstructions()));
+            receive(SIRQ.RESPONSE_MEMORY_WRITE);
+            send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_MEMORY_WRITE, pages.get(1).base(), exe.getData()));
             receive(SIRQ.RESPONSE_MEMORY_WRITE);
             scheduler.admit(process);
+            ++loadedProcess;
         }
     }
 
@@ -145,7 +160,7 @@ public class ProcessManager extends OSModule {
         return "[Process Manager]\n"
                 + "Running process      : " + scheduler.runningProcess + "\n"
                 + "Ready queue          : " + scheduler.readyQueue + "\n"
-                + "Block queue          : " + scheduler.blockQueue + "\n"
+                + "Block queue          : " + Utils.list(scheduler.blockQueue) + "\n"
                 + cpu.save() + "\n";
     }
 
