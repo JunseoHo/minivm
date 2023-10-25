@@ -1,0 +1,16 @@
+.code
+di lda 0 2
+di sub 0 1
+im jpz 0 10
+di lda 0 0
+di add 0 1
+im sto 0 0
+di lda 0 1
+im add 0 1
+im sto 0 1
+im jmp 0 0
+im hlt 0 0
+.data
+0
+1
+1001

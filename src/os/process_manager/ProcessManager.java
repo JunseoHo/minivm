@@ -136,7 +136,10 @@ public class ProcessManager extends OSModule {
             String fileName = (String) intr.values()[0];
             send(new SIRQ(SWName.FILE_MANAGER, SIRQ.REQUEST_FILE, fileName));
             intr = receive(SIRQ.RESPONSE_FILE, SIRQ.FILE_NOT_FOUND);
-            if (intr.id() == SIRQ.FILE_NOT_FOUND) return;
+            if (intr.id() == SIRQ.FILE_NOT_FOUND) {
+                MiniVMLogger.error("ProcessManager", "File not found.");
+                return;
+            }
             File file = (File) intr.values()[0];
             if (file.type != FileType.EXECUTABLE) return;
             send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_PAGES, 2));

@@ -16,7 +16,8 @@ public class GenerateInterruptPanel extends JPanel {
     }
 
     private SIRQ REQUEST_LOAD_PROCESS() {
-        return new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_LOAD_PROCESS, "no_pain_no_gain");
+        String fileName = JOptionPane.showInputDialog("Input file name");
+        return new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_LOAD_PROCESS, fileName);
     }
 
 }
