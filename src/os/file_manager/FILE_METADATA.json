@@ -3,22 +3,28 @@
   "name": "root",
   "files": [
     {
-      "type": "executable",
-      "name": "helloworld",
-      "base": 0,
-      "size": 128
-    },
-    {
-      "type": "executable",
-      "name": "nopainnogain",
-      "base": 128,
-      "size": 128
-    },
-    {
-      "type": "executable",
-      "name": "sum1to1000",
-      "base": 256,
-      "size": 128
+      "type": "directory",
+      "name": "write",
+      "files": [
+        {
+          "type": "executable",
+          "name": "helloworld",
+          "base": 0,
+          "size": 128
+        },
+        {
+          "type": "executable",
+          "name": "nopainnogain",
+          "base": 128,
+          "size": 128
+        },
+        {
+          "type": "executable",
+          "name": "sum1to1000",
+          "base": 256,
+          "size": 128
+        }
+      ]
     }
   ]
 }

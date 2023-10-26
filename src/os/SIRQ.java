@@ -17,9 +17,11 @@ public class SIRQ extends Event {
     public static final int REQUEST_FILE = 0x64;
     public static final int RESPONSE_FILE = 0x65;
     public static final int FILE_NOT_FOUND = 0x66;
+    public static final int REQUEST_CHANGE_DIRECTORY = 0x67;
     public static final int REQUEST_IO_WRITE = 0x96;
     public static final int RESPONSE_IO_WRITE = 0x97;
     public static final int COMPLETE_IO = 0x98;
+    public static final int REQUEST_MOUNT_IO_DEVICE = 0x99;
 
     public SIRQ(String receiver, int id) {
         this(receiver, id, null);
@@ -46,9 +48,11 @@ public class SIRQ extends Event {
             case REQUEST_FILE -> intrName = "REQUEST_FILE";
             case RESPONSE_FILE -> intrName = "RESPONSE_FILE";
             case FILE_NOT_FOUND -> intrName = "FILE_NOT_FOUND";
+            case REQUEST_CHANGE_DIRECTORY -> intrName = "REQUEST_CHANGE_DIRECTORY";
             case REQUEST_IO_WRITE -> intrName = "REQUEST_IO_WRITE";
             case RESPONSE_IO_WRITE -> intrName = "RESPONSE_IO_WRITE";
             case COMPLETE_IO -> intrName = "COMPLETE_IO";
+            case REQUEST_MOUNT_IO_DEVICE -> intrName = "REQUEST_MOUNT_IO_DEVICE";
             default -> intrName = "Unknown";
         }
         return "SIRQ[" + intrName + "]";

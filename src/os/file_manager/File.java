@@ -9,6 +9,7 @@ public class File {
     public String name;
     public long base = 0;
     public long size = 0;
+    public File parent = null;
     public List<Long> records = new ArrayList<>();
     public List<File> children = new ArrayList<>();
 

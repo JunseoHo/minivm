@@ -7,6 +7,8 @@ import os.OSModule;
 import os.SIRQ;
 import os.SWName;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class IOManager extends OSModule {
 
     private IODeviceVector ioDeviceVector;

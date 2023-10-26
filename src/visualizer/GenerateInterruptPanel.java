@@ -10,14 +10,24 @@ import java.awt.*;
 public class GenerateInterruptPanel extends JPanel {
 
     public GenerateInterruptPanel(SystemCall systemCall) {
-        // set attributes
         setPreferredSize(new Dimension(250, 680));
         add(new InterruptButton("REQUEST_LOAD_PROCESS", systemCall, this::REQUEST_LOAD_PROCESS));
+        add(new InterruptButton("REQUEST_CHANGE_DIRECTORY", systemCall, this::REQUEST_CHANGE_DIRECTORY));
+    }
+
+    private SIRQ REQUEST_CHANGE_DIRECTORY() {
+        String dirName = JOptionPane.showInputDialog("Input directory name");
+        return new SIRQ(SWName.FILE_MANAGER, SIRQ.REQUEST_CHANGE_DIRECTORY, dirName);
     }
 
     private SIRQ REQUEST_LOAD_PROCESS() {
         String fileName = JOptionPane.showInputDialog("Input file name");
         return new SIRQ(SWName.PROCESS_MANAGER, SIRQ.REQUEST_LOAD_PROCESS, fileName);
+    }
+
+    private SIRQ REQUEST_MOUNT_IO_DEVICE() {
+        String fileName = JOptionPane.showInputDialog("Input device name");
+        return new SIRQ(SWName.IO_MANAGER, SIRQ.REQUEST_MOUNT_IO_DEVICE, fileName);
     }
 
 }
