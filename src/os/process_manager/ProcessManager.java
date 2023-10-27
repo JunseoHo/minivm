@@ -35,6 +35,7 @@ public class ProcessManager extends OSModule {
         registerISR(SIRQ.REQUEST_TERMINATE_PROCESS, scheduler::terminate);
         registerISR(SIRQ.REQUEST_IO_WRITE, scheduler::ioWrite);
         registerISR(SIRQ.COMPLETE_IO, scheduler::ioComplete);
+        registerISR(SIRQ.REQUEST_KILL_PROCESS, scheduler::killProcess);
     }
 
     @Override
@@ -58,6 +59,12 @@ public class ProcessManager extends OSModule {
                 runningProcess = process;
                 cpu.restore(process.save());
             } else readyQueue.enqueue(process);
+        }
+
+        @InterruptServiceRoutine
+        public void killProcess(SIRQ intr) {
+            if (runningProcess == null) return;
+            cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.HALT));
         }
 
         @InterruptServiceRoutine
@@ -141,7 +148,10 @@ public class ProcessManager extends OSModule {
                 return;
             }
             File file = (File) intr.values()[0];
-            if (file.type != FileType.EXECUTABLE) return;
+            if (file.type != FileType.EXECUTABLE) {
+                MiniVMLogger.error("ProcessManager", fileName + " is not executable.");
+                return;
+            }
             send(new SIRQ(SWName.MEMORY_MANAGER, SIRQ.REQUEST_PAGES, 2));
             intr = receive(SIRQ.RESPONSE_PAGES, SIRQ.OUT_OF_MEMORY);
             if (intr.id() == SIRQ.OUT_OF_MEMORY) return;

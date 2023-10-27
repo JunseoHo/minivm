@@ -7,6 +7,7 @@ public class SIRQ extends Event {
     public static final int REQUEST_LOAD_PROCESS = 0x00;
     public static final int REQUEST_SWITCH_CONTEXT = 0x01;
     public static final int REQUEST_TERMINATE_PROCESS = 0x02;
+    public static final int REQUEST_KILL_PROCESS = 0x03;
     public static final int REQUEST_PAGES = 0x32;
     public static final int RESPONSE_PAGES = 0x33;
     public static final int OUT_OF_MEMORY = 0x34;
@@ -21,7 +22,6 @@ public class SIRQ extends Event {
     public static final int REQUEST_IO_WRITE = 0x96;
     public static final int RESPONSE_IO_WRITE = 0x97;
     public static final int COMPLETE_IO = 0x98;
-    public static final int REQUEST_MOUNT_IO_DEVICE = 0x99;
 
     public SIRQ(String receiver, int id) {
         this(receiver, id, null);
@@ -38,6 +38,7 @@ public class SIRQ extends Event {
             case REQUEST_LOAD_PROCESS -> intrName = "REQUEST_LOAD_PROCESS";
             case REQUEST_SWITCH_CONTEXT -> intrName = "REQUEST_SWITCH_CONTEXT";
             case REQUEST_TERMINATE_PROCESS -> intrName = "REQUEST_TERMINATE_PROCESS";
+            case REQUEST_KILL_PROCESS -> intrName = "REQUEST_KILL_PROCESS";
             case REQUEST_PAGES -> intrName = "REQUEST_PAGES";
             case RESPONSE_PAGES -> intrName = "RESPONSE_PAGES";
             case OUT_OF_MEMORY -> intrName = "OUT_OF_MEMORY";
@@ -52,7 +53,6 @@ public class SIRQ extends Event {
             case REQUEST_IO_WRITE -> intrName = "REQUEST_IO_WRITE";
             case RESPONSE_IO_WRITE -> intrName = "RESPONSE_IO_WRITE";
             case COMPLETE_IO -> intrName = "COMPLETE_IO";
-            case REQUEST_MOUNT_IO_DEVICE -> intrName = "REQUEST_MOUNT_IO_DEVICE";
             default -> intrName = "Unknown";
         }
         return "SIRQ[" + intrName + "]";
