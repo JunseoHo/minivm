@@ -103,6 +103,7 @@ public class ProcessManager extends OSModule {
         }
 
         public void terminate(SIRQ intr) {
+            if (runningProcess == null) return;
             processIdQueue.enqueue(runningProcess.getId());
             List<Page> pages = new ArrayList<>();
             pages.add(runningProcess.getCodeSegment());
