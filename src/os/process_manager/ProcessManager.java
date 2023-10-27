@@ -103,7 +103,11 @@ public class ProcessManager extends OSModule {
         }
 
         public void terminate(SIRQ intr) {
-            if (runningProcess == null) return;
+            System.out.println(1);
+            if (runningProcess == null) {
+                cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
+                return;
+            }
             processIdQueue.enqueue(runningProcess.getId());
             List<Page> pages = new ArrayList<>();
             pages.add(runningProcess.getCodeSegment());
@@ -119,6 +123,7 @@ public class ProcessManager extends OSModule {
             receive(SIRQ.RESPONSE_FREE_PAGE);
             cpu.generateIntr(new HIRQ(HWName.CPU, HIRQ.RESPONSE_TERMINATE));
             --loadedProcess;
+            System.out.println(2);
         }
 
         public void switchContext(SIRQ intr) {

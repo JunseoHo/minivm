@@ -1,6 +1,7 @@
 package os;
 
 import common.bus.Component;
+import common.logger.MiniVMLogger;
 import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 
@@ -27,6 +28,7 @@ public abstract class OSModule extends Component<SIRQ> implements Runnable {
         for (SIRQ intr : receiveAll()) queue.enqueue(intr);
         while (!queue.isEmpty()) {
             SIRQ intr = queue.dequeue();
+            MiniVMLogger.info(name(), "Handle " + intr);
             interruptVectorTable.get(intr.id()).handle(intr);
         }
     }
