@@ -1,0 +1,22 @@
+.code
+di lda 0 2
+di sub 0 1
+im jpz 0 10
+di lda 0 0
+di add 0 1
+im sto 0 0
+di lda 0 1
+im add 0 1
+im sto 0 1
+im jmp 0 0
+im lda 0 53
+im sto 0 3
+im sto 0 4
+im wrm 0 3 2
+im hlt 0 0
+.data
+0
+1
+10
+53
+53

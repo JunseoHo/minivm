@@ -48,6 +48,7 @@ public class FileManager extends OSModule {
     @InterruptServiceRoutine
     public void changeDirectory(SIRQ intr) {
         String dirName = (String) intr.values()[0];
+        if (dirName == null) return;
         if (dirName.equals("..")) {
             if (currentDir.parent == null) MiniVMLogger.error("FileManager", "Current directory is root.");
             else currentDir = currentDir.parent;

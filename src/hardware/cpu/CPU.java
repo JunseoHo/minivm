@@ -116,7 +116,7 @@ public class CPU extends Component<HIRQ> implements Runnable {
             ++PC;
             decode();
             execute();
-            Utils.sleep(300); // down clock
+            Utils.sleep(150); // down clock
         }
     }
 

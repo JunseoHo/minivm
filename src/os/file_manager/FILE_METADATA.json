@@ -23,6 +23,12 @@
           "name": "sum1to1000",
           "base": 256,
           "size": 128
+        },
+        {
+          "type": "executable",
+          "name": "sum1to10",
+          "base": 384,
+          "size": 128
         }
       ]
     }
