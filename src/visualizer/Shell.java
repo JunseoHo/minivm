@@ -27,13 +27,13 @@ public class Shell extends JPanel {
         consolePanel = new JPanel();
         consolePanel.setBackground(Color.BLACK);
         consolePanel.setLayout(new GridLayout(1, 2));
-        consolePanel.add(stdout = new Console(new Color(0, 200, 0)));
-        consolePanel.add(stderr = new Console(new Color(0, 200, 0)));
+        consolePanel.add(stdout = new Console());
+        consolePanel.add(stderr = new Console());
         add(consolePanel);
         stdin = new JTextField();
         stdin.setBackground(Color.BLACK);
         stdin.setFont(new Font("Arial", Font.PLAIN, 20));
-        stdin.setForeground(new Color(0, 200, 0));
+        stdin.setForeground(MiniVMColor.GREEN);
         stdin.setBorder(new LineBorder(Color.BLACK, 10));
         stdin.addActionListener(e -> {
             String commandLine = stdin.getText();

@@ -10,12 +10,12 @@ public class Console extends JTextArea {
     private static final int HISTORY_MAX_SIZE = 12;
     private final LinkedList<String> histories = new LinkedList<>();
 
-    public Console(Color textColor) {
+    public Console() {
         setEditable(false);
         setEnabled(false);
         setPreferredSize(new Dimension(getWidth() / 2, 300));
-        setBorder(new LineBorder(new Color(0, 200, 0), 5));
-        setDisabledTextColor(textColor);
+        setBorder(new LineBorder(MiniVMColor.GREEN, 5));
+        setDisabledTextColor(MiniVMColor.GREEN);
         setBackground(Color.BLACK);
         setFont(new Font("Arial", Font.PLAIN, 20));
     }
