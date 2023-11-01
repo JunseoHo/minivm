@@ -1,7 +1,7 @@
 package os.memory_manager;
 
-import common.CircularQueue;
-import common.InterruptServiceRoutine;
+import interrupt.CircularQueue;
+import interrupt.InterruptServiceRoutine;
 import hardware.Memory;
 import hardware.io_device.IODevice;
 import os.OSModule;

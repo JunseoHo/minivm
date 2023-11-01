@@ -1,9 +1,9 @@
 package hardware.cpu;
 
-import common.InterruptServiceRoutine;
-import common.bus.Component;
-import common.Utils;
-import common.logger.MiniVMLogger;
+import interrupt.InterruptServiceRoutine;
+import interrupt.bus.Component;
+import interrupt.Utils;
+import interrupt.logger.MiniVMLogger;
 import hardware.HIRQ;
 import hardware.HWName;
 import hardware.HW_ISR;

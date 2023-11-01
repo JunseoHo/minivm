@@ -1,4 +1,4 @@
-package common.logger;
+package interrupt.logger;
 
 public class MiniVMLogger {
 

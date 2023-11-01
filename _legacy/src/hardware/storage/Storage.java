@@ -1,6 +1,6 @@
 package hardware.storage;
 
-import common.logger.MiniVMLogger;
+import interrupt.logger.MiniVMLogger;
 import hardware.HIRQ;
 import hardware.io_device.IODevice;
 

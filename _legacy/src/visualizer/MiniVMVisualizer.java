@@ -1,6 +1,6 @@
 package visualizer;
 
-import common.Utils;
+import interrupt.Utils;
 import hardware.Memory;
 import hardware.cpu.CPU;
 import os.SWName;

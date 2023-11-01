@@ -1,9 +1,9 @@
-package common.bus;
+package interrupt.bus;
 
-import common.CircularQueue;
-import common.bus.Bus;
-import common.bus.Event;
-import common.logger.MiniVMLogger;
+import interrupt.CircularQueue;
+import interrupt.bus.Bus;
+import interrupt.bus.Event;
+import interrupt.logger.MiniVMLogger;
 
 import java.util.List;
 

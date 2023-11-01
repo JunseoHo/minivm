@@ -1,9 +1,9 @@
 package os.process_manager;
 
-import common.CircularQueue;
-import common.InterruptServiceRoutine;
-import common.Utils;
-import common.logger.MiniVMLogger;
+import interrupt.CircularQueue;
+import interrupt.InterruptServiceRoutine;
+import interrupt.Utils;
+import interrupt.logger.MiniVMLogger;
 import hardware.HIRQ;
 import hardware.HWName;
 import hardware.cpu.CPU;

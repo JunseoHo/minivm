@@ -1,7 +1,7 @@
 package os;
 
-import common.bus.Bus;
-import common.bus.Component;
+import interrupt.bus.Bus;
+import interrupt.bus.Component;
 import hardware.cpu.CPU;
 import hardware.Memory;
 import hardware.io_device.IODevice;

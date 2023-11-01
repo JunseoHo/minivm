@@ -1,6 +1,6 @@
 package hardware.cpu;
 
-import common.CircularQueue;
+import interrupt.CircularQueue;
 import hardware.HIRQ;
 
 public class Context {

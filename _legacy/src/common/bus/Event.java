@@ -1,4 +1,4 @@
-package common.bus;
+package interrupt.bus;
 
 public class Event {
 

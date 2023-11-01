@@ -1,6 +1,6 @@
 package os.io_manager;
 
-import common.InterruptServiceRoutine;
+import interrupt.InterruptServiceRoutine;
 import hardware.HIRQ;
 import hardware.io_device.IODevice;
 import os.OSModule;

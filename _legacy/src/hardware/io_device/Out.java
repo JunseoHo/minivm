@@ -1,6 +1,6 @@
 package hardware.io_device;
 
-import common.Utils;
+import interrupt.Utils;
 import hardware.HIRQ;
 import hardware.HWName;
 

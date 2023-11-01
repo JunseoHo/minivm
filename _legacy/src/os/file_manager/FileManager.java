@@ -1,7 +1,7 @@
 package os.file_manager;
 
-import common.InterruptServiceRoutine;
-import common.logger.MiniVMLogger;
+import interrupt.InterruptServiceRoutine;
+import interrupt.logger.MiniVMLogger;
 import hardware.io_device.IODevice;
 import hardware.storage.Storage;
 import org.json.simple.JSONArray;

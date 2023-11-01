@@ -1,7 +1,7 @@
 package hardware.io_device;
 
-import common.bus.Component;
-import common.logger.MiniVMLogger;
+import interrupt.bus.Component;
+import interrupt.logger.MiniVMLogger;
 import hardware.HIRQ;
 import hardware.HW_ISR;
 import main.MiniVM;

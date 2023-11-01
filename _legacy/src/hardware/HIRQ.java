@@ -1,6 +1,6 @@
 package hardware;
 
-import common.bus.Event;
+import interrupt.bus.Event;
 
 public class HIRQ extends Event {
 

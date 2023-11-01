@@ -1,6 +1,6 @@
-package common.bus;
+package interrupt.bus;
 
-import common.CircularQueue;
+import interrupt.CircularQueue;
 
 import java.util.ArrayList;
 import java.util.HashMap;

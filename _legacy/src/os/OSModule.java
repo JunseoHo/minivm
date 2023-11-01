@@ -1,7 +1,7 @@
 package os;
 
-import common.bus.Component;
-import common.logger.MiniVMLogger;
+import interrupt.bus.Component;
+import interrupt.logger.MiniVMLogger;
 import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 

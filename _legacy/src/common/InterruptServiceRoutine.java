@@ -1,4 +1,4 @@
-package common;
+package interrupt;
 
 public @interface InterruptServiceRoutine {
 }

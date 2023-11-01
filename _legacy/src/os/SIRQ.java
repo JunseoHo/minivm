@@ -1,6 +1,6 @@
 package os;
 
-import common.bus.Event;
+import interrupt.bus.Event;
 
 public class SIRQ extends Event {
 
