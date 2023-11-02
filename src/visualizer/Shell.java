@@ -35,22 +35,29 @@ public class Shell extends JPanel {
         stdin.setFont(new Font("Arial", Font.PLAIN, 20));
         stdin.setForeground(MiniVMColor.GREEN);
         stdin.setBorder(new LineBorder(Color.BLACK, 10));
+        stdin.setCaretColor(MiniVMColor.GREEN);
         stdin.addActionListener(e -> {
-            String commandLine = stdin.getText();
-            stdout.addTextLine(commandLine);
+            stdout.addTextLine(stdin.getText());
+            stderr.addTextLine(process(stdin.getText()));
             stdin.setText("");
-            stderr.addTextLine(execute(commandLine));
         });
         add(stdin, BorderLayout.SOUTH);
     }
 
-    private String execute(String commandLine) {
+    private String process(String commandLine) {
         String message = null;
-        switch (commandLine) {
+        String[] argv = commandLine.split(" ");
+        if (argv.length < 1) return "invalid arguments";
+        switch (argv[0]) {
+            case "run" -> message = run(argv);
             case "exit" -> System.exit(0);
             default -> message = "command not found";
         }
         return message;
+    }
+
+    private String run(String[] argv) {
+        return "run.";
     }
 
 }
