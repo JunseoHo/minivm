@@ -15,13 +15,11 @@ public class Shell extends JPanel {
     private Console stdout;
     private Console stderr;
     private JTextField stdin;
-    private Queue<String> inputQueue;
 
     public Shell(SystemCall systemCall) {
         // set associations
         this.systemCall = systemCall;
         // set attributes
-        inputQueue = new LinkedList<>();
         setLayout(new BorderLayout());
         // add components
         consolePanel = new JPanel();
