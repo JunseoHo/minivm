@@ -43,4 +43,12 @@ public abstract class CPU extends Device {
         operationMap.get(opcode).operate();
     }
 
+    public String getContext() {
+        return null;
+    }
+
+    public void setContext() {
+
+    }
+
 }
