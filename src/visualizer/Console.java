@@ -11,13 +11,17 @@ public class Console extends JTextArea {
     private final LinkedList<String> histories = new LinkedList<>();
 
     public Console() {
+        this(MiniVMColor.GREEN);
+    }
+
+    public Console(Color borderColor) {
         setEditable(false);
         setEnabled(false);
         setPreferredSize(new Dimension(getWidth() / 2, 300));
-        setBorder(new LineBorder(MiniVMColor.GREEN, 5));
+        setBorder(new LineBorder(borderColor, 5));
         setDisabledTextColor(MiniVMColor.GREEN);
         setBackground(Color.BLACK);
-        setFont(new Font("Arial", Font.PLAIN, 20));
+        setFont(new Font("Consolas", Font.PLAIN, 20));
     }
 
     public void addTextLine(String textLine) {

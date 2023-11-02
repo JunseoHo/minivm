@@ -43,8 +43,29 @@ public abstract class CPU extends Device {
         operationMap.get(opcode).operate();
     }
 
-    public String getContext() {
-        return null;
+    public Context getContext() {
+        Context context = new Context();
+        context.PC = PC;
+        context.MAR = MAR;
+        context.MBR = MBR;
+        context.IR_AM = IR_AM;
+        context.IR_OPC = IR_OPC;
+        context.IR_REG = IR_REG;
+        context.IR_OPR_L = IR_OPR_L;
+        context.IR_OPR_R = IR_OPR_R;
+        context.IDLE = IDLE;
+        context.ZERO = ZERO;
+        context.NEGATIVE = NEGATIVE;
+        context.EAX = EAX;
+        context.EBX = EBX;
+        context.ECX = ECX;
+        context.EDX = EDX;
+        context.CS = CS;
+        context.DS = DS;
+        context.SS = SS;
+        context.SP = SP;
+        context.HS = HS;
+        return context;
     }
 
     public void setContext() {

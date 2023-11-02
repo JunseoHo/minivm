@@ -13,7 +13,6 @@ public class Shell extends JPanel {
     // components
     private JPanel consolePanel;
     private Console stdout;
-    private Console stderr;
     private JTextField stdin;
 
     public Shell(SystemCall systemCall) {
@@ -22,12 +21,7 @@ public class Shell extends JPanel {
         // set attributes
         setLayout(new BorderLayout());
         // add components
-        consolePanel = new JPanel();
-        consolePanel.setBackground(Color.BLACK);
-        consolePanel.setLayout(new GridLayout(1, 2));
-        consolePanel.add(stdout = new Console());
-        consolePanel.add(stderr = new Console());
-        add(consolePanel);
+        add(stdout = new Console());
         stdin = new JTextField();
         stdin.setBackground(Color.BLACK);
         stdin.setFont(new Font("Arial", Font.PLAIN, 20));
@@ -35,8 +29,8 @@ public class Shell extends JPanel {
         stdin.setBorder(new LineBorder(Color.BLACK, 10));
         stdin.setCaretColor(MiniVMColor.GREEN);
         stdin.addActionListener(e -> {
-            stdout.addTextLine(stdin.getText());
-            stderr.addTextLine(process(stdin.getText()));
+            stdout.addTextLine("$> " + stdin.getText());
+            stdout.addTextLine(process(stdin.getText()));
             stdin.setText("");
         });
         add(stdin, BorderLayout.SOUTH);
