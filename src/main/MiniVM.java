@@ -1,7 +1,5 @@
 package main;
 
-import hardware.cpu.CPU;
-import hardware.cpu.IA32;
 import os.OperatingSystem;
 import os.SystemCall;
 import visualizer.MiniVMVisualizer;

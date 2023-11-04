@@ -6,7 +6,6 @@ import interrupt.Utils;
 import interrupt.logger.MiniVMLogger;
 import hardware.HIRQ;
 import hardware.HWName;
-import hardware.cpu.CPU;
 import os.OSModule;
 import os.SIRQ;
 import os.SWName;

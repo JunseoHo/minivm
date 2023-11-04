@@ -1,6 +1,5 @@
 package os;
 
-import hardware.cpu.CPU;
 import hardware.io_device.IODevice;
 
 public interface SystemCall {

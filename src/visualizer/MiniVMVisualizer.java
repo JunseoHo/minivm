@@ -1,6 +1,5 @@
 package visualizer;
 
-import hardware.cpu.CPU;
 import os.SystemCall;
 
 import javax.swing.*;

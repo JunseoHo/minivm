@@ -2,7 +2,6 @@ package os;
 
 import interrupt.bus.Bus;
 import interrupt.bus.Component;
-import hardware.cpu.CPU;
 import hardware.Memory;
 import hardware.io_device.IODevice;
 import hardware.storage.Storage;

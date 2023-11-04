@@ -1,8 +1,5 @@
 package visualizer;
 
-import hardware.cpu.CPU;
-import hardware.cpu.Context;
-
 import javax.swing.*;
 import java.awt.*;
 

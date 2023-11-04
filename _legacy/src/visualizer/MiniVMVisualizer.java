@@ -2,7 +2,6 @@ package visualizer;
 
 import interrupt.Utils;
 import hardware.Memory;
-import hardware.cpu.CPU;
 import os.SWName;
 import os.SystemCall;
 

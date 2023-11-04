@@ -2,7 +2,6 @@ package main;
 
 import interrupt.bus.Bus;
 import interrupt.logger.MiniVMLogger;
-import hardware.cpu.CPU;
 import hardware.HWName;
 import hardware.Memory;
 import hardware.HIRQ;
