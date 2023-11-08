@@ -2,24 +2,42 @@ package hardware.hdd;
 
 import hardware.IODevice;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Formattable;
 import java.util.List;
+import java.util.Scanner;
 
 public class HDD implements IODevice {
 
+    private static final String DISK_IMAGE_FILE_NAME = "/src/hardware/hdd/DISK_IMAGE";
     private static final int FLATTER_SIZE = 16384;
     private static final int FLATTER_COUNT = 4;
     private final List<Flatter> flatters = new ArrayList<>();
 
     public HDD() {
-        for (int i = 0; i < FLATTER_COUNT; i++)
-            flatters.add(new Flatter(FLATTER_SIZE));
+        for (int i = 0; i < FLATTER_COUNT; i++) flatters.add(new Flatter(FLATTER_SIZE));
+        importDiskImage();
+    }
+
+    private void importDiskImage() {
+        try {
+            Scanner scanner = new Scanner(new File(System.getProperty("user.dir") + DISK_IMAGE_FILE_NAME));
+            for (int addr = 0; addr < FLATTER_SIZE * FLATTER_COUNT; addr++) {
+                while (scanner.hasNextLine()) {
+                    String[] sectorValues = scanner.nextLine().split(" ");
+                    for (String sectorValue : sectorValues) write(addr++, Byte.parseByte(sectorValue, 16));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Disk image file not found.");
+        }
     }
 
     @Override
     public Byte read(int addr) {
         if (addr < 0 || addr > size() - 1) return null;
-        System.out.println(addr);
         return flatters.get(addr / FLATTER_SIZE).read(addr % FLATTER_SIZE);
     }
 
