@@ -2,13 +2,12 @@ package os.file_system;
 
 import hardware.hdd.HDD;
 
-import java.util.Arrays;
-
 public class FileSystem {
     // attributes
     private static final int CLUSTER_SIZE = 8;
+    private FATEntry[] FAT;
     private Cluster[] clusters = null;
-    private int rootDirectoryEntryClusterNumber;
+    private int dataRegion;
     // hardware
     private HDD hdd;
 
@@ -18,7 +17,8 @@ public class FileSystem {
         clusters = new Cluster[clusterCount];
         for (int clusterNumber = 0; clusterNumber < clusterCount; clusterNumber++)
             clusters[clusterNumber] = new Cluster(clusterNumber * CLUSTER_SIZE, CLUSTER_SIZE);
-        rootDirectoryEntryClusterNumber = clusters.length / 2;
+        FAT = new FATEntry[dataRegion = clusterCount / 5];
+        for (int i = 0; i < dataRegion; i++) FAT[i] = new FATEntry(clusters[i]);
     }
 
     public long read(int clusterNumber) {
@@ -58,6 +58,28 @@ public class FileSystem {
                 longValue >>= 8;
             }
             hdd.write(physicalBase, byteValues);
+        }
+
+    }
+
+    private static class FATEntry {
+
+        private Cluster cluster;
+
+        public FATEntry(Cluster cluster) {
+            this.cluster = cluster;
+        }
+
+        public int read(int index) {
+            long value = cluster.read();
+            value >>= (3 - index) * 16L;
+            return (int) (value & 65535);
+        }
+
+        public void write(int index, int clusterNumber) {
+            long value = cluster.read();
+            clusterNumber <<= (3 - index) * 16L;
+            cluster.write(value + clusterNumber);
         }
 
     }
@@ -103,8 +125,9 @@ public class FileSystem {
     }
 
     public static void main(String[] args) {
+        FileSystem fileSystem = new FileSystem();
         HDD hdd = new HDD();
-        System.out.println(hdd.read(480));
+        fileSystem.associate(hdd);
     }
 
 }
