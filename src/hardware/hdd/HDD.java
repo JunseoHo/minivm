@@ -66,4 +66,27 @@ public class HDD implements IODevice {
     public int size() {
         return FLATTER_SIZE * FLATTER_COUNT;
     }
+
+    private boolean isPrintable(byte c) {
+        return c > 31 && c < 127;
+    }
+
+    public String dump(int begin, int end) {
+        if (begin >= end) return null;
+        if (begin % 4 != 0) begin -= begin % 4;
+        if (end % 4 != 0) end += 4 - (end % 4);
+        String dump = "";
+        for (; begin <= end; begin += 4) {
+            byte[] values = new byte[4];
+            for (int i = 0; i < 4; i++) values[i] = read(begin + i);
+            dump += String.format("%-8d  %4d%4d%4d%4d  %c%c%c%c\n", begin,
+                    values[0], values[1], values[2], values[3],
+                    isPrintable(values[0]) ? values[0] : '.',
+                    isPrintable(values[1]) ? values[1] : '.',
+                    isPrintable(values[2]) ? values[2] : '.',
+                    isPrintable(values[3]) ? values[3] : '.');
+        }
+        return dump;
+    }
+
 }

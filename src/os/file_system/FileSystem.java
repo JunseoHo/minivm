@@ -7,46 +7,120 @@ import java.util.Arrays;
 public class FileSystem {
     // attributes
     private static final int CLUSTER_SIZE = 16;
+    // components
     private Cluster[] clusters = null;
-    private FATEntry[] FAT;
-    private int FATSize;
+    private FATEntry[] fileAllocationTable;
+    private int currentDirectoryEntry;
     // hardware
     private HDD hdd;
 
     public void associate(HDD hdd) {
         this.hdd = hdd;
-        int clusterCount = hdd.size() / CLUSTER_SIZE; // = 32768
+        // create cluster list & file allocation table
+        int clusterCount = hdd.size() / CLUSTER_SIZE;
         clusters = new Cluster[clusterCount];
         for (int clusterNumber = 0; clusterNumber < clusterCount; clusterNumber++)
             clusters[clusterNumber] = new Cluster(clusterNumber * CLUSTER_SIZE, CLUSTER_SIZE);
-        FATSize = clusterCount / 5;
-        FAT = new FATEntry[FATSize];
-        for (int i = 0; i < FATSize; i++) FAT[i] = new FATEntry(clusters[i]);
-        System.out.println("FAT Size : " + FATSize);
-        System.out.println("Cluster Size : " + FATSize * 4);
+        fileAllocationTable = new FATEntry[clusterCount / 5];
+        for (int i = 0; i < fileAllocationTable.length; i++) fileAllocationTable[i] = new FATEntry(clusters[i]);
+        mkRootDir();
     }
 
-    public int[] read(int clusterNumber) {
-        return clusters[FATSize + clusterNumber].read();
+    public boolean mkdir(String name) {
+        // create directory entry
+        if (name.length() > 8 || name.length() < 1) return false; // name length is invalid
+        DirectoryEntry newDir = new DirectoryEntry(name, 0, 0, -1);
+        int allocatedClusterNumber = allocateEmptyCluster();
+        write(allocatedClusterNumber, newDir.toIntArray());
+        DirectoryEntry currentDir = new DirectoryEntry(clusters[fileAllocationTable.length + currentDirectoryEntry]);
+        ++currentDir.fileSize;
+        if (currentDir.startingClusterNumber == -1) currentDir.startingClusterNumber = allocatedClusterNumber;
+        else {
+            int endOfChain = currentDir.startingClusterNumber;
+            while (readFAT(endOfChain) != -1) endOfChain = readFAT(endOfChain);
+            writeFAT(endOfChain, allocatedClusterNumber);
+        }
+        write(currentDirectoryEntry, currentDir.toIntArray());
+        return true;
     }
 
-    public void write(int clusterNumber, int[] values) {
-        clusters[FATSize + clusterNumber].write(values);
+    public boolean rmdir(String name) {
+      return false;
     }
 
-    public int readFAT(int logicalClusterNumber) {
+    private void mkRootDir() {
+        // create directory entry
+        String name = "root";
+        int[] directoryEntry = new int[]{0, 0, 0, 0};
+        for (int i = 0; i < 8; i++) {
+            if (i < name.length()) directoryEntry[i / 4] += name.charAt(i);
+            if (i % 4 != 3) directoryEntry[i / 4] <<= 8;
+        }
+        directoryEntry[3] = -1; // empty directory
+        write(allocateEmptyCluster(), directoryEntry);
+        currentDirectoryEntry = 0;
+    }
+
+    private int[] read(int clusterNumber) {
+        return clusters[fileAllocationTable.length + clusterNumber].read();
+    }
+
+    private void write(int clusterNumber, int[] values) {
+        clusters[fileAllocationTable.length + clusterNumber].write(values);
+    }
+
+    private int readFAT(int logicalClusterNumber) {
         int physicalClusterNumber = logicalClusterNumber / 4;
         int physicalClusterOffset = logicalClusterNumber % 4;
-        return FAT[physicalClusterNumber].read(physicalClusterOffset);
+        return fileAllocationTable[physicalClusterNumber].read(physicalClusterOffset);
     }
 
-    public void writeFAT(int logicalClusterNumber, int value) {
+    private void writeFAT(int logicalClusterNumber, int value) {
         int physicalClusterNumber = logicalClusterNumber / 4;
         int physicalClusterOffset = logicalClusterNumber % 4;
-        FAT[physicalClusterNumber].write(physicalClusterOffset, value);
+        fileAllocationTable[physicalClusterNumber].write(physicalClusterOffset, value);
+    }
+
+    private int allocateEmptyCluster() {
+        for (int entryNumber = 0; entryNumber < fileAllocationTable.length; entryNumber++)
+            for (int offset = 0; offset < 4; offset++)
+                if (fileAllocationTable[entryNumber].read(offset) == 0) {
+                    fileAllocationTable[entryNumber].write(offset, -1);
+                    return entryNumber + offset;
+                }
+        return -1;
+    }
+
+    private class Cluster {
+
+        int physicalBase;
+        int size;
+
+        public Cluster(int physicalBase, int size) {
+            this.physicalBase = physicalBase;
+            this.size = size;
+        }
+
+        public int[] read() {
+            Byte[] byteValues = hdd.read(physicalBase, size);
+            int[] intValues = new int[]{0, 0, 0, 0};
+            for (int i = 0; i < size; i++) intValues[i / 4] = (intValues[i / 4] << 8) | byteValues[i];
+            return intValues;
+        }
+
+        public void write(int[] values) {
+            byte[] byteValues = new byte[16];
+            for (int i = 0; i < 4; i++) {
+                Byte[] byteArray = toByteArray(values[i]);
+                for (int j = 0; j < 4; j++) byteValues[i * 4 + j] = byteArray[j];
+            }
+            hdd.write(physicalBase, byteValues);
+        }
+
     }
 
     private class FATEntry {
+
         private final Cluster cluster;
 
         public FATEntry(Cluster cluster) {
@@ -64,33 +138,46 @@ public class FileSystem {
         }
     }
 
+    private class DirectoryEntry {
 
-    private class Cluster {
+        public String name;
+        public int extension; // 0 = directory, 1 = executable, 2 = file
+        public int fileSize;
+        public int startingClusterNumber;
 
-        int physicalBase;
-        int size;
-
-        public Cluster(int physicalBase, int size) {
-            this.physicalBase = physicalBase;
-            this.size = size;
+        public DirectoryEntry(Cluster cluster) {
+            int[] values = cluster.read();
+            name = "";
+            for (int i = 1; i > -1; i--)
+                for (int j = 0; j < 4; j++) {
+                    char c = (char) (values[i] & 0xFF);
+                    if (c != 0) name = c + name;
+                    values[i] >>= 8;
+                }
+            fileSize = values[2] & 0xFFFF;
+            values[2] >>= 16;
+            extension = values[2] & 0xFFFF;
+            startingClusterNumber = values[3];
         }
 
-        public int[] read() {
-            Byte[] byteValues = hdd.read(physicalBase, size);
-            int[] intValues = new int[4];
-            Arrays.fill(intValues, 0);
-            for (int i = 0; i < size; i++)
-                intValues[i / 4] = (intValues[i / 4] << 8) + byteValues[i];
-            return intValues;
+        public DirectoryEntry(String name, int extension, int fileSize, int startingClusterNumber) {
+            this.name = name;
+            this.extension = extension;
+            this.fileSize = fileSize;
+            this.startingClusterNumber = startingClusterNumber;
         }
 
-        public void write(int[] values) {
-            byte[] byteValues = new byte[16];
-            for (int i = 0; i < 4; i++) {
-                Byte[] byteArray = toByteArray(values[i]);
-                for (int j = 0; j < 4; j++) byteValues[i * 4 + j] = byteArray[j];
+        public int[] toIntArray() {
+            int[] intArray = new int[]{0, 0, 0, 0};
+            for (int i = 0; i < 8; i++) {
+                if (i < name.length()) intArray[i / 4] += name.charAt(i);
+                if (i % 4 != 3) intArray[i / 4] <<= 8;
             }
-            hdd.write(physicalBase, byteValues);
+            intArray[2] += extension;
+            intArray[2] <<= 16;
+            intArray[2] += fileSize;
+            intArray[3] = startingClusterNumber;
+            return intArray;
         }
 
     }
@@ -107,6 +194,12 @@ public class FileSystem {
     public static void main(String[] args) {
         FileSystem fileSystem = new FileSystem();
         HDD hdd = new HDD();
+        fileSystem.associate(hdd);
+        fileSystem.mkdir("hello");
+        fileSystem.mkdir("byebye");
+        fileSystem.mkdir("meowmoew");
+        System.out.println(hdd.dump(0, 100));
+        System.out.println(hdd.dump(104848, 104948));
     }
 
 }
