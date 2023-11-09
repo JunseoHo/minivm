@@ -12,7 +12,7 @@ import java.util.Scanner;
 public class HDD implements IODevice {
 
     private static final String DISK_IMAGE_FILE_NAME = "/src/hardware/hdd/DISK_IMAGE";
-    private static final int FLATTER_SIZE = 16384;
+    private static final int FLATTER_SIZE = 131072; // 128KB
     private static final int FLATTER_COUNT = 4;
     private final List<Flatter> flatters = new ArrayList<>();
 

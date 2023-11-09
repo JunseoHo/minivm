@@ -6,32 +6,64 @@ import java.util.Arrays;
 
 public class FileSystem {
     // attributes
-    private static final int CLUSTER_SIZE = 8;
+    private static final int CLUSTER_SIZE = 16;
     private Cluster[] clusters = null;
-    private int rootDirectoryEntryClusterNumber;
+    private FATEntry[] FAT;
+    private int FATSize;
     // hardware
     private HDD hdd;
 
     public void associate(HDD hdd) {
         this.hdd = hdd;
-        int clusterCount = hdd.size() / CLUSTER_SIZE;
+        int clusterCount = hdd.size() / CLUSTER_SIZE; // = 32768
         clusters = new Cluster[clusterCount];
         for (int clusterNumber = 0; clusterNumber < clusterCount; clusterNumber++)
             clusters[clusterNumber] = new Cluster(clusterNumber * CLUSTER_SIZE, CLUSTER_SIZE);
-        rootDirectoryEntryClusterNumber = clusters.length / 2;
+        FATSize = clusterCount / 5;
+        FAT = new FATEntry[FATSize];
+        for (int i = 0; i < FATSize; i++) FAT[i] = new FATEntry(clusters[i]);
+        System.out.println("FAT Size : " + FATSize);
+        System.out.println("Cluster Size : " + FATSize * 4);
     }
 
-    public long read(int clusterNumber) {
-        return clusters[clusterNumber].read();
+    public int[] read(int clusterNumber) {
+        return clusters[FATSize + clusterNumber].read();
     }
 
-    public void write(int clusterNumber, long value) {
-        clusters[clusterNumber].write(value);
+    public void write(int clusterNumber, int[] values) {
+        clusters[FATSize + clusterNumber].write(values);
     }
 
-    public void createFile(int fileName, int[] contents) {
-
+    public int readFAT(int logicalClusterNumber) {
+        int physicalClusterNumber = logicalClusterNumber / 4;
+        int physicalClusterOffset = logicalClusterNumber % 4;
+        return FAT[physicalClusterNumber].read(physicalClusterOffset);
     }
+
+    public void writeFAT(int logicalClusterNumber, int value) {
+        int physicalClusterNumber = logicalClusterNumber / 4;
+        int physicalClusterOffset = logicalClusterNumber % 4;
+        FAT[physicalClusterNumber].write(physicalClusterOffset, value);
+    }
+
+    private class FATEntry {
+        private final Cluster cluster;
+
+        public FATEntry(Cluster cluster) {
+            this.cluster = cluster;
+        }
+
+        public int read(int offset) {
+            return cluster.read()[offset];
+        }
+
+        public void write(int offset, int value) {
+            int[] values = cluster.read();
+            values[offset] = value;
+            cluster.write(values);
+        }
+    }
+
 
     private class Cluster {
 
@@ -43,68 +75,38 @@ public class FileSystem {
             this.size = size;
         }
 
-        public long read() {
+        public int[] read() {
             Byte[] byteValues = hdd.read(physicalBase, size);
-            long longValue = 0;
-            for (Byte byteValue : byteValues)
-                longValue = (longValue << 8) | byteValue;
-            return longValue;
+            int[] intValues = new int[4];
+            Arrays.fill(intValues, 0);
+            for (int i = 0; i < size; i++)
+                intValues[i / 4] = (intValues[i / 4] << 8) + byteValues[i];
+            return intValues;
         }
 
-        public void write(long longValue) {
-            byte[] byteValues = new byte[size];
-            for (int sectorNumber = 7; sectorNumber > -1; sectorNumber--) {
-                byteValues[sectorNumber] = (byte) (longValue & 255);
-                longValue >>= 8;
+        public void write(int[] values) {
+            byte[] byteValues = new byte[16];
+            for (int i = 0; i < 4; i++) {
+                Byte[] byteArray = toByteArray(values[i]);
+                for (int j = 0; j < 4; j++) byteValues[i * 4 + j] = byteArray[j];
             }
             hdd.write(physicalBase, byteValues);
         }
 
     }
 
-    private static class DirectoryEntry {
-
-        private String name;
-        private int extension;
-        private int startingCluster;
-        private int fileSize;
-
-        public DirectoryEntry(Cluster cluster) {
-            long value = cluster.read();
-            fileSize = (int) (value & 255);
-            value >>= 8;
-            startingCluster = (int) (value & 16384);
-            value >>= 14;
-            extension = (int) (value & 3);
-            value >>= 2;
-            name = "";
-            for (int i = 0; i < 5; i++) {
-                char c = (char) (value & 255);
-                if (c != 0) name = c + name;
-                value >>= 8;
-            }
+    private Byte[] toByteArray(int i) {
+        Byte[] byteArray = new Byte[4];
+        for (int index = 3; index > -1; index--) {
+            byteArray[index] = (byte) (i & 0xFF);
+            i >>= 8;
         }
-
-        public long toLongValue() {
-            long value = 0;
-            for (int i = 0; i < 5; i++) {
-                char c = i < name.length() ? name.charAt(i) : 0;
-                value += c;
-                value <<= 8;
-            }
-            value += extension;
-            value <<= 2;
-            value += startingCluster;
-            value <<= 14;
-            value += fileSize;
-            return value;
-        }
-
+        return byteArray;
     }
 
     public static void main(String[] args) {
+        FileSystem fileSystem = new FileSystem();
         HDD hdd = new HDD();
-        System.out.println(hdd.read(480));
     }
 
 }
