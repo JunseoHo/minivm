@@ -23,7 +23,8 @@ public class FileSystem {
             clusters[clusterNumber] = new Cluster(clusterNumber * CLUSTER_SIZE, CLUSTER_SIZE);
         fileAllocationTable = new FATEntry[clusterCount / 5];
         for (int i = 0; i < fileAllocationTable.length; i++) fileAllocationTable[i] = new FATEntry(clusters[i]);
-        mkRootDir();
+        currentDirectoryEntry = 0;
+        //mkRootDir();
     }
 
     public boolean mkdir(String name) {
@@ -45,7 +46,7 @@ public class FileSystem {
     }
 
     public boolean rmdir(String name) {
-      return false;
+        return false;
     }
 
     private void mkRootDir() {
@@ -79,6 +80,21 @@ public class FileSystem {
         int physicalClusterNumber = logicalClusterNumber / 4;
         int physicalClusterOffset = logicalClusterNumber % 4;
         fileAllocationTable[physicalClusterNumber].write(physicalClusterOffset, value);
+    }
+
+    private boolean changeCurrentDirectory(String name) {
+        DirectoryEntry currentDir = new DirectoryEntry(clusters[fileAllocationTable.length + currentDirectoryEntry]);
+        System.out.println(currentDir.name);
+        int childrenClusterNumber = currentDir.startingClusterNumber;
+        while (childrenClusterNumber != -1) {
+            DirectoryEntry dir = new DirectoryEntry(clusters[fileAllocationTable.length + childrenClusterNumber]);
+            if (dir.name.equals(name)) {
+                currentDirectoryEntry = childrenClusterNumber;
+                return true;
+            }
+            childrenClusterNumber = readFAT(childrenClusterNumber);
+        }
+        return false;
     }
 
     private int allocateEmptyCluster() {
