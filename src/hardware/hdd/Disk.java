@@ -5,18 +5,17 @@ import hardware.IODevice;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Formattable;
 import java.util.List;
 import java.util.Scanner;
 
-public class HDD implements IODevice {
+public class Disk implements IODevice {
 
     private static final String DISK_IMAGE_FILE_NAME = "/src/hardware/hdd/DISK_IMAGE";
     private static final int FLATTER_SIZE = 131072; // 128KB
     private static final int FLATTER_COUNT = 4;
     private final List<Flatter> flatters = new ArrayList<>();
 
-    public HDD() {
+    public Disk() {
         for (int i = 0; i < FLATTER_COUNT; i++) flatters.add(new Flatter(FLATTER_SIZE));
         importDiskImage();
     }
