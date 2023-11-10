@@ -100,7 +100,7 @@ public class DiskDriver {
     }
 
     public int allocate(int size) {
-        int requiredClusterCount = (size / CLUSTER_SIZE) + 1;
+        int requiredClusterCount = (size / CLUSTER_SIZE) + ((size % CLUSTER_SIZE == 0) ? 0 : 1);
         List<Integer> allocated = new LinkedList<>();
         for (int clusterNumber = 0; clusterNumber < FAT_SIZE; clusterNumber++) {
             if (allocated.size() < requiredClusterCount && readFAT(clusterNumber) == 0)
@@ -121,6 +121,26 @@ public class DiskDriver {
             next = readFAT(clusterNumber = next);
         }
         writeFAT(clusterNumber, 0);
+    }
+
+    public DirectoryEntry dirEntry(int clusterNumber) {
+        Cluster cluster = clusters.get(FAT_SIZE + clusterNumber);
+        int[] values = cluster.read();
+        String name = "";
+        int extension = 0;
+        int size = 0;
+        int startingCluster = 0;
+        for (int i = 1; i > -1; i--)
+            for (int j = 0; j < 4; j++) {
+                char c = (char) (values[i] & 0xFF);
+                if (c != 0) name = c + name;
+                values[i] >>= 8;
+            }
+        size = values[2];
+        values[2] >>= 8;
+        extension = values[2];
+        startingCluster = values[3];
+        return new DirectoryEntry(name, extension, size, startingCluster);
     }
 
     private Byte[] toByteArray(int i) {
