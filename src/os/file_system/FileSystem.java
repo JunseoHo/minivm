@@ -10,6 +10,7 @@ public class FileSystem {
     // components
     private Cluster[] clusters = null;
     private FATEntry[] fileAllocationTable;
+    private int rootDirectoryEntry;
     private int currentDirectoryEntry;
     // hardware
     private HDD hdd;
@@ -23,6 +24,7 @@ public class FileSystem {
             clusters[clusterNumber] = new Cluster(clusterNumber * CLUSTER_SIZE, CLUSTER_SIZE);
         fileAllocationTable = new FATEntry[clusterCount / 5];
         for (int i = 0; i < fileAllocationTable.length; i++) fileAllocationTable[i] = new FATEntry(clusters[i]);
+        rootDirectoryEntry = 0;
         currentDirectoryEntry = 0;
         //mkRootDir();
     }
@@ -49,17 +51,35 @@ public class FileSystem {
         return false;
     }
 
-    private void mkRootDir() {
-        // create directory entry
-        String name = "root";
-        int[] directoryEntry = new int[]{0, 0, 0, 0};
-        for (int i = 0; i < 8; i++) {
-            if (i < name.length()) directoryEntry[i / 4] += name.charAt(i);
-            if (i % 4 != 3) directoryEntry[i / 4] <<= 8;
+    public boolean createFile(String name) {
+        if (name.length() > 8 || name.length() < 1) return false; // name length is invalid
+        DirectoryEntry newFile = new DirectoryEntry(name, 1, 0, -1);
+        int allocatedClusterNumber = allocateEmptyCluster();
+        System.out.println("Allocated = " + allocatedClusterNumber);
+        write(allocatedClusterNumber, newFile.toIntArray());
+        DirectoryEntry currentDir = new DirectoryEntry(clusters[fileAllocationTable.length + currentDirectoryEntry]);
+        ++currentDir.fileSize;
+        if (currentDir.startingClusterNumber == -1) currentDir.startingClusterNumber = allocatedClusterNumber;
+        else {
+            int endOfChain = currentDir.startingClusterNumber;
+            while (readFAT(endOfChain) != -1) endOfChain = readFAT(endOfChain);
+            writeFAT(endOfChain, allocatedClusterNumber);
         }
-        directoryEntry[3] = -1; // empty directory
-        write(allocateEmptyCluster(), directoryEntry);
-        currentDirectoryEntry = 0;
+        write(currentDirectoryEntry, currentDir.toIntArray());
+        return true;
+    }
+
+    public String list() {
+        String list = "";
+        DirectoryEntry currentDir = new DirectoryEntry(clusters[fileAllocationTable.length + currentDirectoryEntry]);
+        int endOfChain = currentDir.startingClusterNumber;
+        if (endOfChain == -1) return list;
+        while (endOfChain != -1) {
+            DirectoryEntry child = new DirectoryEntry(clusters[fileAllocationTable.length + endOfChain]);
+            list += String.format("%-10s%-10s%-3d\n", child.name, child.extension == 0 ? "Dir" : "File", child.fileSize);
+            endOfChain = readFAT(endOfChain);
+        }
+        return list;
     }
 
     private int[] read(int clusterNumber) {
@@ -83,8 +103,11 @@ public class FileSystem {
     }
 
     private boolean changeCurrentDirectory(String name) {
+        if (name.equals("..")) {
+            currentDirectoryEntry = rootDirectoryEntry;
+            return true;
+        }
         DirectoryEntry currentDir = new DirectoryEntry(clusters[fileAllocationTable.length + currentDirectoryEntry]);
-        System.out.println(currentDir.name);
         int childrenClusterNumber = currentDir.startingClusterNumber;
         while (childrenClusterNumber != -1) {
             DirectoryEntry dir = new DirectoryEntry(clusters[fileAllocationTable.length + childrenClusterNumber]);
@@ -99,11 +122,14 @@ public class FileSystem {
 
     private int allocateEmptyCluster() {
         for (int entryNumber = 0; entryNumber < fileAllocationTable.length; entryNumber++)
-            for (int offset = 0; offset < 4; offset++)
+            for (int offset = 0; offset < 4; offset++) {
+                System.out.println(entryNumber + " " + offset + " " + fileAllocationTable[entryNumber].read(offset));
                 if (fileAllocationTable[entryNumber].read(offset) == 0) {
                     fileAllocationTable[entryNumber].write(offset, -1);
-                    return entryNumber + offset;
+                    System.out.println("OK");
+                    return entryNumber * 4 + offset;
                 }
+            }
         return -1;
     }
 
@@ -214,6 +240,9 @@ public class FileSystem {
         fileSystem.mkdir("hello");
         fileSystem.mkdir("byebye");
         fileSystem.mkdir("meowmoew");
+        fileSystem.changeCurrentDirectory("hello");
+        fileSystem.createFile("Sum1to");
+        System.out.println(fileSystem.list());
         System.out.println(hdd.dump(0, 100));
         System.out.println(hdd.dump(104848, 104948));
     }
