@@ -22,7 +22,7 @@ public class Console extends JPanel {
         // set associations
         this.shell = shell;
         // set attributes
-        setPreferredSize(new Dimension(1280, 260));
+        setPreferredSize(new Dimension(1800, 260));
         setBackground(MiniVMColor.BACKGROUND);
         setLayout(new FlowLayout());
         // set components
@@ -43,6 +43,7 @@ public class Console extends JPanel {
         input.setForeground(Color.LIGHT_GRAY);
         input.setBackground(new Color(59, 62, 64));
         input.addActionListener(e -> handleEnter());
+        input.setCaretColor(Color.LIGHT_GRAY);
         add(input);
     }
 
