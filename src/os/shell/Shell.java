@@ -14,21 +14,17 @@ public class Shell {
         this.systemCall = systemCall;
     }
 
-    public void run() {
-        while (true) {
-            System.out.print("$> ");
-            String[] input = new Scanner(System.in).nextLine().trim().split(" ");
-            if (input.length < 1) continue;
-            String message = "";
-            switch (input[0]) {
-                case "mkdir" -> message = mkdir(input);
-                case "rmdir" -> message = rmdir(input);
-                case "ls" -> message = ls(input);
-                case "exit" -> exit(0);
-                default -> message = "command not found.";
-            }
-            System.out.println(message);
+    public String run(String command) {
+        String message = "";
+        String[] argv = command.split(" ");
+        switch (argv[0]) {
+            case "mkdir" -> message = mkdir(argv);
+            case "rmdir" -> message = rmdir(argv);
+            case "ls" -> message = ls(argv);
+            case "exit" -> exit(0);
+            default -> message = "command not found.";
         }
+        return message;
     }
 
     private String mkdir(String[] input) {
