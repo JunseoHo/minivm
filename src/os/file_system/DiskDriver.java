@@ -67,18 +67,12 @@ public class DiskDriver {
         cluster.write(values);
     }
 
-    public void write(int clusterNumber, List<Byte> byteData) {
-        List<Integer> intData = toIntArray(byteData);
-        while (intData.size() % 4 != 0) intData.add(0);
-        for (int i = 0; i < intData.size() / 4; i++) {
-            int[] data = new int[4];
-            data[0] = intData.get(i * 4);
-            data[1] = intData.get(i * 4 + 1);
-            data[2] = intData.get(i * 4 + 2);
-            data[3] = intData.get(i * 4 + 3);
-            writeData(clusterNumber, data);
-            if ((clusterNumber = readFAT(clusterNumber)) == -1) break;
-        }
+    public int[] readData(int clusterNumber) {
+        return clusters.get(FAT_SIZE + clusterNumber).read();
+    }
+
+    public void writeData(int clusterNumber, int[] values) {
+        clusters.get(FAT_SIZE + clusterNumber).write(values);
     }
 
     public List<Byte> read(int clusterNumber) {
@@ -91,12 +85,18 @@ public class DiskDriver {
         return byteData;
     }
 
-    public int[] readData(int clusterNumber) {
-        return clusters.get(FAT_SIZE + clusterNumber).read();
-    }
-
-    public void writeData(int clusterNumber, int[] values) {
-        clusters.get(FAT_SIZE + clusterNumber).write(values);
+    public void write(int clusterNumber, List<Byte> byteData) {
+        List<Integer> intData = toIntArray(byteData);
+        while (intData.size() % 4 != 0) intData.add(0);
+        for (int i = 0; i < intData.size() / 4; i++) {
+            int[] data = new int[4];
+            data[0] = intData.get(i * 4);
+            data[1] = intData.get(i * 4 + 1);
+            data[2] = intData.get(i * 4 + 2);
+            data[3] = intData.get(i * 4 + 3);
+            writeData(clusterNumber, data);
+            if ((clusterNumber = readFAT(clusterNumber)) == -1) break;
+        }
     }
 
     public int allocate(int size) {
@@ -127,8 +127,8 @@ public class DiskDriver {
         Cluster cluster = clusters.get(FAT_SIZE + clusterNumber);
         int[] values = cluster.read();
         String name = "";
-        int extension = 0;
-        int size = 0;
+        int type = 0;
+        int isOpened = 0;
         int startingCluster = 0;
         for (int i = 1; i > -1; i--)
             for (int j = 0; j < 4; j++) {
@@ -136,11 +136,11 @@ public class DiskDriver {
                 if (c != 0) name = c + name;
                 values[i] >>= 8;
             }
-        size = values[2];
+        isOpened = values[2];
         values[2] >>= 8;
-        extension = values[2];
+        type = values[2];
         startingCluster = values[3];
-        return new DirectoryEntry(name, extension, size, startingCluster);
+        return new DirectoryEntry(name, type, startingCluster);
     }
 
     private Byte[] toByteArray(int i) {
