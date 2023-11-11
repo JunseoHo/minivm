@@ -34,6 +34,7 @@ public class Console extends JPanel {
         output.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
                 new EmptyBorder(10, 10, 10, 10)));
         output.setDisabledTextColor(Color.LIGHT_GRAY);
+        output.setFont(new Font("Arial", Font.PLAIN, 15));
         output.setBackground(MiniVMColor.AREA);
         add(output);
         input = new JTextField();
@@ -44,12 +45,14 @@ public class Console extends JPanel {
         input.setBackground(new Color(59, 62, 64));
         input.addActionListener(e -> handleEnter());
         input.setCaretColor(Color.LIGHT_GRAY);
+        input.setFont(new Font("Arial", Font.PLAIN, 15));
         add(input);
     }
 
     private void addLine(String line) {
-        histories.add(line);
-        if (histories.size() > 10) histories.poll();
+        String[] tokens = line.split("\n");
+        histories.addAll(Arrays.asList(tokens));
+        while (histories.size() > 10) histories.poll();
         String text = "";
         for (String history : histories) text += history + "\n";
         output.setText(text);

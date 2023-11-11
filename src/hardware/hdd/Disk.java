@@ -72,18 +72,24 @@ public class Disk implements IODevice {
 
     public String dump(int begin, int end) {
         if (begin >= end) return null;
-        if (begin % 4 != 0) begin -= begin % 4;
-        if (end % 4 != 0) end += 4 - (end % 4);
+        if (begin % 8 != 0) begin -= begin % 8;
+        if (end % 8 != 0) end += 8 - (end % 8);
         String dump = "";
-        for (; begin <= end; begin += 4) {
-            byte[] values = new byte[4];
-            for (int i = 0; i < 4; i++) values[i] = read(begin + i);
-            dump += String.format("%-8d  %4d%4d%4d%4d  %c%c%c%c\n", begin,
+        for (; begin <= end; begin += 8) {
+            byte[] values = new byte[8];
+            for (int i = 0; i < 8; i++) values[i] = read(begin + i);
+            dump += String.format("%-8d  %4d%4d%4d%4d%4d%4d%4d%4d   " +
+                            "%c%c%c%c%c%c%c%c\n", begin,
                     values[0], values[1], values[2], values[3],
+                    values[4], values[5], values[6], values[7],
                     isPrintable(values[0]) ? values[0] : '.',
                     isPrintable(values[1]) ? values[1] : '.',
                     isPrintable(values[2]) ? values[2] : '.',
-                    isPrintable(values[3]) ? values[3] : '.');
+                    isPrintable(values[3]) ? values[3] : '.',
+                    isPrintable(values[4]) ? values[4] : '.',
+                    isPrintable(values[5]) ? values[5] : '.',
+                    isPrintable(values[6]) ? values[6] : '.',
+                    isPrintable(values[7]) ? values[7] : '.');
         }
         return dump;
     }

@@ -166,4 +166,8 @@ public class DiskDriver {
         return intArray;
     }
 
+    public String dump(int begin, int end) {
+        return disk.dump(begin, end);
+    }
+
 }

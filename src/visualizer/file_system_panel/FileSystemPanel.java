@@ -1,5 +1,6 @@
 package visualizer.file_system_panel;
 
+import common.MiniVMUtils;
 import os.file_system.FileSystem;
 import visualizer.common.MiniVMColor;
 
@@ -13,7 +14,8 @@ public class FileSystemPanel extends JPanel {
     // associations
     private FileSystem fileSystem;
     // components
-    private JTextArea diskImage;
+    private JTextArea FAT;
+    private JTextArea dataRegion;
     private JTextArea editor;
 
     public FileSystemPanel(FileSystem filesystem) {
@@ -31,24 +33,48 @@ public class FileSystemPanel extends JPanel {
         JPanel contents = new JPanel();
         contents.setLayout(new FlowLayout());
         contents.setBackground(MiniVMColor.BACKGROUND);
-        diskImage = new JTextArea();
-        diskImage.setEditable(false);
-        diskImage.setEnabled(false);
-        diskImage.setPreferredSize(new Dimension(500, 750));
-        diskImage.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
+        FAT = new JTextArea();
+        FAT.setEditable(false);
+        FAT.setEnabled(false);
+        FAT.setPreferredSize(new Dimension(500, 750));
+        FAT.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
                 new EmptyBorder(10, 10, 10, 10)));
-        diskImage.setDisabledTextColor(Color.LIGHT_GRAY);
-        diskImage.setBackground(MiniVMColor.AREA);
-        contents.add(diskImage);
+        FAT.setDisabledTextColor(Color.LIGHT_GRAY);
+        FAT.setFont(new Font("Consolas", Font.PLAIN, 15));
+        FAT.setBackground(MiniVMColor.AREA);
+        contents.add(FAT);
+        dataRegion = new JTextArea();
+        dataRegion.setEditable(false);
+        dataRegion.setEnabled(false);
+        dataRegion.setPreferredSize(new Dimension(500, 750));
+        dataRegion.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
+                new EmptyBorder(10, 10, 10, 10)));
+        dataRegion.setDisabledTextColor(Color.LIGHT_GRAY);
+        dataRegion.setFont(new Font("Consolas", Font.PLAIN, 15));
+        dataRegion.setBackground(MiniVMColor.AREA);
+        contents.add(dataRegion);
         editor = new JTextArea();
         editor.setForeground(Color.LIGHT_GRAY);
-        editor.setPreferredSize(new Dimension(1290, 750));
+        editor.setPreferredSize(new Dimension(790, 750));
         editor.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
                 new EmptyBorder(10, 10, 10, 10)));
         editor.setBackground(MiniVMColor.AREA);
         editor.setCaretColor(Color.LIGHT_GRAY);
+        editor.setFont(new Font("Arial", Font.PLAIN, 25));
         contents.add(editor);
         add(contents, BorderLayout.CENTER);
+        new Thread(new Updater()).start();
+    }
+
+    private class Updater implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                FAT.setText(fileSystem.getRecentChangedFAT());
+                dataRegion.setText(fileSystem.getRecentChangedDiskImage());
+                MiniVMUtils.sleep(200);
+            }
+        }
     }
 
 }

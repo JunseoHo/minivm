@@ -9,6 +9,7 @@ public class FileSystem {
 
     private DiskDriver diskDriver = null;
     private int currentDir = 0;
+    private int recentChangedCluster = 0;
 
     public FileSystem(Disk disk) {
         diskDriver = new DiskDriver(disk);
@@ -28,6 +29,7 @@ public class FileSystem {
         }
         diskDriver.writeData(currentDir, superDir.intValues());
         diskDriver.writeData(newDirClusterNumber, newDir.intValues());
+        updateRecentChangedCluster(newDirClusterNumber);
         return "Directory " + name + " has been created.";
     }
 
@@ -140,4 +142,17 @@ public class FileSystem {
         System.out.println(disk.dump(104848, 104948));
     }
 
+    private void updateRecentChangedCluster(int clusterNumber) {
+        if (clusterNumber < recentChangedCluster || clusterNumber > recentChangedCluster + 37)
+            recentChangedCluster = clusterNumber;
+    }
+
+    public String getRecentChangedDiskImage() {
+        return diskDriver.dump((recentChangedCluster + diskDriver.FAT_SIZE) * 16,
+                ((recentChangedCluster + 18) + diskDriver.FAT_SIZE) * 16);
+    }
+
+    public String getRecentChangedFAT() {
+        return diskDriver.dump(recentChangedCluster * 16, (recentChangedCluster + 18) * 16);
+    }
 }

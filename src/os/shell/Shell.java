@@ -16,6 +16,7 @@ public class Shell {
 
     public String run(String command) {
         String message = "";
+        if (command.isBlank()) return "";
         String[] argv = command.split(" ");
         switch (argv[0]) {
             case "mkdir" -> message = mkdir(argv);
