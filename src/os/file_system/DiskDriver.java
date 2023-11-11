@@ -114,6 +114,7 @@ public class DiskDriver {
     }
 
     public void free(int clusterNumber) {
+        if (clusterNumber == -1) return;
         int next = readFAT(clusterNumber);
         if (next == 0) return;
         while (clusterNumber != -1 && next != -1) {

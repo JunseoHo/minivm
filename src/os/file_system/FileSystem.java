@@ -3,6 +3,7 @@ package os.file_system;
 import hardware.hdd.Disk;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class FileSystem {
@@ -103,6 +104,26 @@ public class FileSystem {
         return null;
     }
 
+    public List<Byte> getContents(String name) {
+        int clusterNumber = findClusterNumber(name);
+        DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
+        if (dirEntry == null) return null;
+        if (dirEntry.startingCluster == -1) return new LinkedList<>();
+        clusterNumber = dirEntry.startingCluster;
+        List<Byte> contents = new LinkedList<>();
+        while (clusterNumber != -1) {
+            int[] values = diskDriver.readData(clusterNumber);
+            for (int i = 0; i < 4; i++) {
+                contents.add((byte) ((values[i] >> 24) & 0xFF));
+                contents.add((byte) ((values[i] >> 16) & 0xFF));
+                contents.add((byte) ((values[i] >> 8) & 0xFF));
+                contents.add((byte) ((values[i]) & 0xFF));
+            }
+            clusterNumber = diskDriver.readFAT(clusterNumber);
+        }
+        return contents;
+    }
+
     public String close(String name) {
         int clusterNumber = findClusterNumber(name);
         if (clusterNumber == -1) return "File " + name + " has been not found.";
@@ -113,7 +134,25 @@ public class FileSystem {
         return "File " + name + " has been closed.";
     }
 
-    public String overwrite(String name, String contents) {
+    public String overwrite(String name, List<Byte> contents) {
+        int clusterNumber = findClusterNumber(name);
+        DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
+        int startingCluster = diskDriver.allocate(contents.size());
+        diskDriver.free(dirEntry.startingCluster);
+        dirEntry.startingCluster = startingCluster;
+        diskDriver.writeData(clusterNumber, dirEntry.intValues());
+        while (contents.size() % 16 != 0) contents.add((byte) 0);
+        while (startingCluster != -1) {
+            int[] values = new int[]{0, 0, 0, 0};
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    values[i] <<= 8;
+                    values[i] |= contents.get(i * 4 + j);
+                }
+            }
+            diskDriver.writeData(startingCluster, values);
+            startingCluster = diskDriver.readFAT(startingCluster);
+        }
         return null;
     }
 
