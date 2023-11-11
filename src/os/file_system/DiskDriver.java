@@ -1,17 +1,16 @@
 package os.file_system;
 
-import hardware.hdd.Disk;
+import hardware.disk.Disk;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 public class DiskDriver {
     // attributes
-    final int CLUSTER_SIZE = 16;
-    final int ROOT_DIR = 0;
-    final int FAT_SIZE;
+    public final int CLUSTER_SIZE = 16;
+    public final int ROOT_DIR = 0;
+    public final int FAT_SIZE;
     // hardware
     private Disk disk = null;
     // components
@@ -35,13 +34,14 @@ public class DiskDriver {
             return intValues;
         }
 
-        public void write(int[] intValues) {
+        public boolean write(int[] intValues) {
+            if (intValues == null) return false;
             byte[] byteValues = new byte[size];
             for (int i = 0; i < 4; i++) {
                 Byte[] byteArray = toByteArray(intValues[i]);
                 for (int j = 0; j < 4; j++) byteValues[i * 4 + j] = byteArray[j];
             }
-            disk.write(base, byteValues);
+            return disk.write(base, byteValues);
         }
     }
 
@@ -57,25 +57,30 @@ public class DiskDriver {
     }
 
     public int readFAT(int clusterNumber) {
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return 0;
         return clusters.get(clusterNumber / 4).read()[clusterNumber % 4];
     }
 
-    public void writeFAT(int clusterNumber, int value) {
+    public boolean writeFAT(int clusterNumber, int value) {
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return false;
         Cluster cluster = clusters.get(clusterNumber / 4);
         int[] values = cluster.read();
         values[clusterNumber % 4] = value;
-        cluster.write(values);
+        return cluster.write(values);
     }
 
     public int[] readData(int clusterNumber) {
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return null;
         return clusters.get(FAT_SIZE + clusterNumber).read();
     }
 
-    public void writeData(int clusterNumber, int[] values) {
-        clusters.get(FAT_SIZE + clusterNumber).write(values);
+    public boolean writeData(int clusterNumber, int[] values) {
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE || values == null) return false;
+        return clusters.get(FAT_SIZE + clusterNumber).write(values);
     }
 
     public List<Byte> read(int clusterNumber) {
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return null;
         List<Byte> byteData = new ArrayList<>();
         while (clusterNumber != -1) {
             int[] data = readData(clusterNumber);
@@ -168,7 +173,7 @@ public class DiskDriver {
     }
 
     public String dump(int begin, int end) {
-        return disk.dump(begin, end);
+        return disk.getImage(begin, end);
     }
 
 }

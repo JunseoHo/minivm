@@ -1,8 +1,7 @@
 package os.file_system;
 
-import hardware.hdd.Disk;
+import hardware.disk.Disk;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -177,8 +176,8 @@ public class FileSystem {
         System.out.println(fileSystem.ls());
         System.out.println(fileSystem.rmdir("ByeBye"));
         System.out.println(fileSystem.ls());
-        System.out.println(disk.dump(0, 100));
-        System.out.println(disk.dump(104848, 104948));
+        System.out.println(disk.getImage(0, 100));
+        System.out.println(disk.getImage(104848, 104948));
     }
 
     private void updateRecentChangedCluster(int clusterNumber) {

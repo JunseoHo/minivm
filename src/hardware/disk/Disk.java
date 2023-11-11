@@ -1,4 +1,4 @@
-package hardware.hdd;
+package hardware.disk;
 
 import hardware.IODevice;
 
@@ -9,29 +9,16 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Disk implements IODevice {
-
-    private static final String DISK_IMAGE_FILE_NAME = "/src/hardware/hdd/DISK_IMAGE";
-    private static final int FLATTER_SIZE = 131072; // 128KB
-    private static final int FLATTER_COUNT = 4;
+    // attributes
+    private final String DISK_IMAGE_FILE_NAME = "/src/hardware/disk/DISK_IMAGE";
+    private final int FLATTER_SIZE = 131072; // 128KB
+    private final int FLATTER_COUNT = 4;
+    // components
     private final List<Flatter> flatters = new ArrayList<>();
 
     public Disk() {
         for (int i = 0; i < FLATTER_COUNT; i++) flatters.add(new Flatter(FLATTER_SIZE));
         importDiskImage();
-    }
-
-    private void importDiskImage() {
-        try {
-            Scanner scanner = new Scanner(new File(System.getProperty("user.dir") + DISK_IMAGE_FILE_NAME));
-            for (int addr = 0; addr < FLATTER_SIZE * FLATTER_COUNT; addr++) {
-                while (scanner.hasNextLine()) {
-                    String[] sectorValues = scanner.nextLine().split(" ");
-                    for (String sectorValue : sectorValues) write(addr++, Byte.parseByte(sectorValue, 16));
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.err.println("Disk image file not found.");
-        }
     }
 
     @Override
@@ -66,32 +53,41 @@ public class Disk implements IODevice {
         return FLATTER_SIZE * FLATTER_COUNT;
     }
 
-    private boolean isPrintable(byte c) {
-        return c > 31 && c < 127;
-    }
-
-    public String dump(int begin, int end) {
-        if (begin >= end) return null;
+    public String getImage(int begin, int end) {
+        String img = "";
+        if (begin >= end) return img;
         if (begin % 8 != 0) begin -= begin % 8;
         if (end % 8 != 0) end += 8 - (end % 8);
-        String dump = "";
         for (; begin <= end; begin += 8) {
             byte[] values = new byte[8];
             for (int i = 0; i < 8; i++) values[i] = read(begin + i);
-            dump += String.format("%-8d  %4d%4d%4d%4d%4d%4d%4d%4d   " +
-                            "%c%c%c%c%c%c%c%c\n", begin,
+            img += String.format("%-8d  %4d%4d%4d%4d%4d%4d%4d%4d   %c%c%c%c%c%c%c%c\n", begin,
                     values[0], values[1], values[2], values[3],
                     values[4], values[5], values[6], values[7],
-                    isPrintable(values[0]) ? values[0] : '.',
-                    isPrintable(values[1]) ? values[1] : '.',
-                    isPrintable(values[2]) ? values[2] : '.',
-                    isPrintable(values[3]) ? values[3] : '.',
-                    isPrintable(values[4]) ? values[4] : '.',
-                    isPrintable(values[5]) ? values[5] : '.',
-                    isPrintable(values[6]) ? values[6] : '.',
-                    isPrintable(values[7]) ? values[7] : '.');
+                    asPrintable(values[0]), asPrintable(values[1]),
+                    asPrintable(values[2]), asPrintable(values[3]),
+                    asPrintable(values[4]), asPrintable(values[5]),
+                    asPrintable(values[6]), asPrintable(values[7]));
         }
-        return dump;
+        return img;
+    }
+
+    private void importDiskImage() {
+        try {
+            Scanner scanner = new Scanner(new File(System.getProperty("user.dir") + DISK_IMAGE_FILE_NAME));
+            for (int addr = 0; addr < FLATTER_SIZE * FLATTER_COUNT; addr++) {
+                while (scanner.hasNextLine())
+                    for (String sectorValue : scanner.nextLine().split(" "))
+                        write(addr++, Byte.parseByte(sectorValue, 16));
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.err.println("Disk image file not found.");
+        }
+    }
+
+    private char asPrintable(byte c) {
+        return c > 31 && c < 127 ? (char) c : '.';
     }
 
 }

@@ -1,6 +1,6 @@
 package os.file_system;
 
-import hardware.hdd.Disk;
+import hardware.disk.Disk;
 
 public class FileSystemOld {
     // attributes
@@ -283,8 +283,8 @@ public class FileSystemOld {
         fileSystem.mkdir("byebye");
         fileSystem.mkdir("meowmoew");
         System.out.println(fileSystem.list());
-        System.out.println(disk.dump(0, 100));
-        System.out.println(disk.dump(104848, 104948));
+        System.out.println(disk.getImage(0, 100));
+        System.out.println(disk.getImage(104848, 104948));
     }
 
 }

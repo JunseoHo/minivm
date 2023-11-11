@@ -20,9 +20,9 @@ public class DirectoryEntry {
             intValues[i / 4] <<= 8;
             if (i < name.length()) intValues[i / 4] += name.charAt(i);
         }
-        intValues[2] += type;
+        intValues[2] |= type;
         intValues[2] <<= 16;
-        intValues[2] += isOpened;
+        intValues[2] |= isOpened;
         intValues[3] = startingCluster;
         return intValues;
     }

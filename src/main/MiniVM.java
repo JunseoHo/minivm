@@ -1,9 +1,7 @@
 package main;
 
-import com.formdev.flatlaf.FlatLightLaf;
-import hardware.hdd.Disk;
+import hardware.disk.Disk;
 import os.OperatingSystem;
-import os.SystemCall;
 import os.shell.Shell;
 import visualizer.MiniVMVisualizer;
 

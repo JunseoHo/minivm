@@ -1,6 +1,6 @@
 package os;
 
-import hardware.hdd.Disk;
+import hardware.disk.Disk;
 import os.file_system.FileSystem;
 
 public class OperatingSystem implements SystemCall {
