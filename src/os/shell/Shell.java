@@ -5,6 +5,7 @@ import os.SystemCall;
 import java.util.Scanner;
 
 import static java.lang.System.exit;
+import static java.lang.System.out;
 
 public class Shell {
 
@@ -22,6 +23,7 @@ public class Shell {
             case "mkdir" -> message = mkdir(argv);
             case "rmdir" -> message = rmdir(argv);
             case "ls" -> message = ls(argv);
+            case "touch" -> message = touch(argv);
             case "exit" -> exit(0);
             default -> message = "command not found.";
         }
@@ -41,6 +43,18 @@ public class Shell {
     private String ls(String[] input) {
         if (input.length != 1) return "Invalid arguments.";
         return systemCall.ls();
+    }
+
+    private String touch(String[] input) {
+        if (input.length != 2) return "Invalid arguments.";
+        return systemCall.touch(input[1]);
+    }
+
+    private String open(String[] input) {
+        if (input.length != 2) return "Invalid arguments.";
+        String message = systemCall.open(input[1]);
+        if (message != null) return message;
+        return "File " + input[1] + " has been opened.";
     }
 
 }

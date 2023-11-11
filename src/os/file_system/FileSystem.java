@@ -100,7 +100,7 @@ public class FileSystem {
         if (dirEntry.isOpened == 1) return "File " + name + " is already opened.";
         dirEntry.isOpened = 1;
         diskDriver.writeData(clusterNumber, dirEntry.intValues());
-        return "File " + name + " has been opened.";
+        return null;
     }
 
     public String close(String name) {

@@ -9,4 +9,8 @@ public interface SystemCall {
 
     String ls();
 
+    String touch(String name);
+
+    String open(String name);
+
 }

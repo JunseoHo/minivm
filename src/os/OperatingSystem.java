@@ -25,4 +25,14 @@ public class OperatingSystem implements SystemCall {
     public String ls() {
         return fileSystem.ls();
     }
+
+    @Override
+    public String touch(String name) {
+        return fileSystem.touch(name);
+    }
+
+    @Override
+    public String open(String name) {
+        return fileSystem.open(name);
+    }
 }

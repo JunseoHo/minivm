@@ -16,7 +16,7 @@ public class FileSystemPanel extends JPanel {
     // components
     private JTextArea FAT;
     private JTextArea dataRegion;
-    private JTextArea editor;
+    private FileEditorPanel editor;
 
     public FileSystemPanel(FileSystem filesystem) {
         // set associations
@@ -53,14 +53,7 @@ public class FileSystemPanel extends JPanel {
         dataRegion.setFont(new Font("Consolas", Font.PLAIN, 15));
         dataRegion.setBackground(MiniVMColor.AREA);
         contents.add(dataRegion);
-        editor = new JTextArea();
-        editor.setForeground(Color.LIGHT_GRAY);
-        editor.setPreferredSize(new Dimension(790, 750));
-        editor.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
-                new EmptyBorder(10, 10, 10, 10)));
-        editor.setBackground(MiniVMColor.AREA);
-        editor.setCaretColor(Color.LIGHT_GRAY);
-        editor.setFont(new Font("Arial", Font.PLAIN, 25));
+        editor = new FileEditorPanel(filesystem);
         contents.add(editor);
         add(contents, BorderLayout.CENTER);
         new Thread(new Updater()).start();
