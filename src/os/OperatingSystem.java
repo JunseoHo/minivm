@@ -32,7 +32,6 @@ public class OperatingSystem implements SystemCall {
     }
 
     @Override
-    public String open(String name) {
-        return fileSystem.open(name);
-    }
+    public String rm(String name) { return fileSystem.rm(name); }
+
 }

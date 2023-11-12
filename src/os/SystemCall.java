@@ -11,6 +11,6 @@ public interface SystemCall {
 
     String touch(String name);
 
-    String open(String name);
+    String rm(String name);
 
 }

@@ -24,6 +24,7 @@ public class Shell {
             case "rmdir" -> message = rmdir(argv);
             case "ls" -> message = ls(argv);
             case "touch" -> message = touch(argv);
+            case "rm" -> message = rm(argv);
             case "exit" -> exit(0);
             default -> message = "command not found.";
         }
@@ -50,11 +51,9 @@ public class Shell {
         return systemCall.touch(input[1]);
     }
 
-    private String open(String[] input) {
+    private String rm(String[] input) {
         if (input.length != 2) return "Invalid arguments.";
-        String message = systemCall.open(input[1]);
-        if (message != null) return message;
-        return "File " + input[1] + " has been opened.";
+        return systemCall.rm(input[1]);
     }
 
 }
