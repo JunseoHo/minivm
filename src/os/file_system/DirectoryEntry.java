@@ -8,9 +8,13 @@ public class DirectoryEntry {
     public int startingCluster;
 
     public DirectoryEntry(String name, int type, int startingCluster) {
+        this(name, type, 0, startingCluster);
+    }
+
+    public DirectoryEntry(String name, int type, int isOpened, int startingCluster) {
         this.name = name;
         this.type = type;
-        this.isOpened = 0;
+        this.isOpened = isOpened;
         this.startingCluster = startingCluster;
     }
 

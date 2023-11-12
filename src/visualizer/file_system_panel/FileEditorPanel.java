@@ -1,7 +1,6 @@
 package visualizer.file_system_panel;
 
 import os.file_system.FileSystem;
-import os.shell.Shell;
 import visualizer.common.MiniVMColor;
 
 import javax.swing.*;
@@ -79,7 +78,7 @@ public class FileEditorPanel extends JPanel {
         }
         List<Byte> contents = new LinkedList<>();
         for (char c : editor.getText().toCharArray()) contents.add((byte) c);
-        fileSystem.overwrite(openedFileName, contents);
+        fileSystem.setContents(openedFileName, contents);
     }
 
 }

@@ -3,6 +3,7 @@ package os.file_system;
 import hardware.disk.Disk;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class DiskDriver {
 
         public int[] read() {
             Byte[] byteValues = disk.read(base, size);
+            if (byteValues == null) return null;
             int[] intValues = new int[]{0, 0, 0, 0};
             for (int i = 0; i < size; i++) intValues[i / 4] = (intValues[i / 4] << 8) | byteValues[i];
             return intValues;
@@ -46,7 +48,7 @@ public class DiskDriver {
     }
 
     public DiskDriver(Disk disk) {
-        // associate hardware
+        // set associations
         this.disk = disk;
         // create clusters
         int clusterCount = disk.size() / CLUSTER_SIZE;
@@ -79,32 +81,32 @@ public class DiskDriver {
         return clusters.get(FAT_SIZE + clusterNumber).write(values);
     }
 
-    public List<Byte> read(int clusterNumber) {
+    public List<Byte> readContents(int clusterNumber) {
         if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return null;
-        List<Byte> byteData = new ArrayList<>();
+        List<Byte> contents = new ArrayList<>();
         while (clusterNumber != -1) {
             int[] data = readData(clusterNumber);
-            for (int d : data) for (byte b : toByteArray(d)) byteData.add(b);
+            for (int d : data) contents.addAll(Arrays.asList(toByteArray(d)));
             clusterNumber = readFAT(clusterNumber);
         }
-        return byteData;
+        return contents;
     }
 
-    public void write(int clusterNumber, List<Byte> byteData) {
-        List<Integer> intData = toIntArray(byteData);
-        while (intData.size() % 4 != 0) intData.add(0);
-        for (int i = 0; i < intData.size() / 4; i++) {
+    public boolean writeContents(int clusterNumber, List<Byte> contents) {
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE || contents == null) return false;
+        List<Integer> intArray = toIntArray(contents);
+        while (intArray.size() % 4 != 0) intArray.add(0);
+        for (int i = 0; i < intArray.size() / 4; i++) {
             int[] data = new int[4];
-            data[0] = intData.get(i * 4);
-            data[1] = intData.get(i * 4 + 1);
-            data[2] = intData.get(i * 4 + 2);
-            data[3] = intData.get(i * 4 + 3);
+            for (int j = 0; j < 4; j++) data[j] = intArray.get(i * 4 + j);
             writeData(clusterNumber, data);
             if ((clusterNumber = readFAT(clusterNumber)) == -1) break;
         }
+        return true;
     }
 
     public int allocate(int size) {
+        if (size < 1) return -1;
         int requiredClusterCount = (size / CLUSTER_SIZE) + ((size % CLUSTER_SIZE == 0) ? 0 : 1);
         List<Integer> allocated = new LinkedList<>();
         for (int clusterNumber = 0; clusterNumber < FAT_SIZE; clusterNumber++) {
@@ -119,7 +121,7 @@ public class DiskDriver {
     }
 
     public void free(int clusterNumber) {
-        if (clusterNumber == -1) return;
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return;
         int next = readFAT(clusterNumber);
         if (next == 0) return;
         while (clusterNumber != -1 && next != -1) {
@@ -130,23 +132,20 @@ public class DiskDriver {
     }
 
     public DirectoryEntry dirEntry(int clusterNumber) {
-        Cluster cluster = clusters.get(FAT_SIZE + clusterNumber);
-        int[] values = cluster.read();
+        if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return null;
+        int[] values = clusters.get(FAT_SIZE + clusterNumber).read();
         String name = "";
-        int type = 0;
-        int isOpened = 0;
-        int startingCluster = 0;
         for (int i = 1; i > -1; i--)
             for (int j = 0; j < 4; j++) {
                 char c = (char) (values[i] & 0xFF);
                 if (c != 0) name = c + name;
                 values[i] >>= 8;
             }
-        isOpened = values[2];
+        int isOpened = values[2];
         values[2] >>= 8;
-        type = values[2];
-        startingCluster = values[3];
-        return new DirectoryEntry(name, type, startingCluster);
+        int type = values[2];
+        int startingCluster = values[3];
+        return new DirectoryEntry(name, type, isOpened, startingCluster);
     }
 
     private Byte[] toByteArray(int i) {
@@ -172,7 +171,7 @@ public class DiskDriver {
         return intArray;
     }
 
-    public String dump(int begin, int end) {
+    public String getImage(int begin, int end) {
         return disk.getImage(begin, end);
     }
 

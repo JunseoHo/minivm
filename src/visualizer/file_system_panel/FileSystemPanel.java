@@ -64,7 +64,7 @@ public class FileSystemPanel extends JPanel {
         public void run() {
             while (true) {
                 FAT.setText(fileSystem.getRecentChangedFAT());
-                dataRegion.setText(fileSystem.getRecentChangedDiskImage());
+                dataRegion.setText(fileSystem.getRecentChangedData());
                 MiniVMUtils.sleep(200);
             }
         }

@@ -12,8 +12,7 @@ public class FileSystem {
     private int recentChangedCluster = 0;
 
     public FileSystem(Disk disk) {
-        diskDriver = new DiskDriver(disk);
-        currentDir = diskDriver.ROOT_DIR;
+        currentDir = (diskDriver = new DiskDriver(disk)).ROOT_DIR;
     }
 
     public String mkdir(String name) {
@@ -47,10 +46,9 @@ public class FileSystem {
                 diskDriver.writeFAT(next, 0);
                 diskDriver.writeData(currentDir, superDir.intValues());
                 return "Directory " + name + " has been removed.";
-            } else {
-                prev = next;
-                next = diskDriver.readFAT(prev);
             }
+            prev = next;
+            next = diskDriver.readFAT(prev);
         }
         return "Directory " + name + " has been not found.";
     }
@@ -72,11 +70,26 @@ public class FileSystem {
     }
 
     public String rm(String name) {
-        return null;
+        if (name.length() > 8 || name.length() < 1) return "Invalid file name.";
+        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
+        int prev;
+        int next = superDir.startingCluster;
+        while (next != -1) {
+            DirectoryEntry file = diskDriver.dirEntry(next);
+            if (file.name.equals(name)) {
+                if (file.type != 1) return name + " is not file.";
+                diskDriver.free(file.startingCluster);
+                diskDriver.free(next);
+                return "File " + name + " has been removed.";
+            }
+            prev = next;
+            next = diskDriver.readFAT(prev);
+        }
+        return "File " + name + " has been not found.";
     }
 
     public String cd(String name) {
-        int clusterNumber = findClusterNumber(name);
+        int clusterNumber = findSubdirEntry(name);
         if (clusterNumber == -1) return name + " is not found.";
         currentDir = clusterNumber;
         return "Directory changed.";
@@ -87,44 +100,25 @@ public class FileSystem {
         DirectoryEntry dir = diskDriver.dirEntry(currentDir);
         int clusterNumber = dir.startingCluster;
         while (clusterNumber != -1) {
-            list += diskDriver.dirEntry(clusterNumber) + "\n";
+            list += diskDriver.dirEntry(clusterNumber)
+                    + (diskDriver.readFAT(clusterNumber) == -1 ? "" : "\n");
             clusterNumber = diskDriver.readFAT(clusterNumber);
         }
         return list;
     }
 
     public String open(String name) {
-        int clusterNumber = findClusterNumber(name);
+        int clusterNumber = findSubdirEntry(name);
         if (clusterNumber == -1) return "File " + name + " has been not found.";
         DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
         if (dirEntry.isOpened == 1) return "File " + name + " is already opened.";
         dirEntry.isOpened = 1;
         diskDriver.writeData(clusterNumber, dirEntry.intValues());
-        return null;
-    }
-
-    public List<Byte> getContents(String name) {
-        int clusterNumber = findClusterNumber(name);
-        DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
-        if (dirEntry == null) return null;
-        if (dirEntry.startingCluster == -1) return new LinkedList<>();
-        clusterNumber = dirEntry.startingCluster;
-        List<Byte> contents = new LinkedList<>();
-        while (clusterNumber != -1) {
-            int[] values = diskDriver.readData(clusterNumber);
-            for (int i = 0; i < 4; i++) {
-                contents.add((byte) ((values[i] >> 24) & 0xFF));
-                contents.add((byte) ((values[i] >> 16) & 0xFF));
-                contents.add((byte) ((values[i] >> 8) & 0xFF));
-                contents.add((byte) ((values[i]) & 0xFF));
-            }
-            clusterNumber = diskDriver.readFAT(clusterNumber);
-        }
-        return contents;
+        return "File " + name + " has been opened.";
     }
 
     public String close(String name) {
-        int clusterNumber = findClusterNumber(name);
+        int clusterNumber = findSubdirEntry(name);
         if (clusterNumber == -1) return "File " + name + " has been not found.";
         DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
         if (dirEntry.isOpened == 0) return "File " + name + " is already closed.";
@@ -133,51 +127,43 @@ public class FileSystem {
         return "File " + name + " has been closed.";
     }
 
-    public String overwrite(String name, List<Byte> contents) {
-        int clusterNumber = findClusterNumber(name);
+    public List<Byte> getContents(String name) {
+        int clusterNumber = findSubdirEntry(name);
         DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
-        int startingCluster = diskDriver.allocate(contents.size());
-        diskDriver.free(dirEntry.startingCluster);
-        dirEntry.startingCluster = startingCluster;
-        diskDriver.writeData(clusterNumber, dirEntry.intValues());
-        while (contents.size() % 16 != 0) contents.add((byte) 0);
-        while (startingCluster != -1) {
-            int[] values = new int[]{0, 0, 0, 0};
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    values[i] <<= 8;
-                    values[i] |= contents.get(i * 4 + j);
-                }
-            }
-            diskDriver.writeData(startingCluster, values);
-            startingCluster = diskDriver.readFAT(startingCluster);
-        }
-        return null;
+        if (dirEntry == null) return null;
+        if (dirEntry.startingCluster == -1) return new LinkedList<>();
+        return diskDriver.readContents(dirEntry.startingCluster);
     }
 
-    private int findClusterNumber(String name) {
+    public boolean setContents(String name, List<Byte> contents) {
+        int clusterNumber = findSubdirEntry(name);
+        if (clusterNumber == -1) return false;
+        DirectoryEntry dir = diskDriver.dirEntry(findSubdirEntry(name));
+        int startingCluster = diskDriver.allocate(contents.size());
+        diskDriver.free(dir.startingCluster);
+        dir.startingCluster = startingCluster;
+        diskDriver.writeData(clusterNumber, dir.intValues());
+        diskDriver.writeContents(startingCluster, contents);
+        return true;
+    }
+
+    public String getRecentChangedFAT() {
+        return diskDriver.getImage(recentChangedCluster * 16, (recentChangedCluster + 18) * 16);
+    }
+
+    public String getRecentChangedData() {
+        return diskDriver.getImage((recentChangedCluster + diskDriver.FAT_SIZE) * 16,
+                ((recentChangedCluster + 18) + diskDriver.FAT_SIZE) * 16);
+    }
+
+    private int findSubdirEntry(String name) {
         DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
         int clusterNumber = superDir.startingCluster;
         while (clusterNumber != -1) {
-            DirectoryEntry dir = diskDriver.dirEntry(clusterNumber);
-            if (dir.name.equals(name)) return clusterNumber;
+            if (diskDriver.dirEntry(clusterNumber).name.equals(name)) return clusterNumber;
             clusterNumber = diskDriver.readFAT(clusterNumber);
         }
         return -1;
-    }
-
-    public static void main(String[] args) {
-        Disk disk = new Disk();
-        FileSystem fileSystem = new FileSystem(disk);
-        System.out.println(fileSystem.mkdir("Hello"));
-        System.out.println(fileSystem.mkdir("ByeBye"));
-        System.out.println(fileSystem.mkdir("World"));
-        System.out.println(fileSystem.touch("OKOK"));
-        System.out.println(fileSystem.ls());
-        System.out.println(fileSystem.rmdir("ByeBye"));
-        System.out.println(fileSystem.ls());
-        System.out.println(disk.getImage(0, 100));
-        System.out.println(disk.getImage(104848, 104948));
     }
 
     private void updateRecentChangedCluster(int clusterNumber) {
@@ -185,12 +171,4 @@ public class FileSystem {
             recentChangedCluster = clusterNumber;
     }
 
-    public String getRecentChangedDiskImage() {
-        return diskDriver.dump((recentChangedCluster + diskDriver.FAT_SIZE) * 16,
-                ((recentChangedCluster + 18) + diskDriver.FAT_SIZE) * 16);
-    }
-
-    public String getRecentChangedFAT() {
-        return diskDriver.dump(recentChangedCluster * 16, (recentChangedCluster + 18) * 16);
-    }
 }
