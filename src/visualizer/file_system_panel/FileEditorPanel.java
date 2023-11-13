@@ -29,7 +29,7 @@ public class FileEditorPanel extends JPanel {
         // create components
         editor = new JTextArea();
         editor.setForeground(Color.LIGHT_GRAY);
-        editor.setPreferredSize(new Dimension(790, 720));
+        editor.setPreferredSize(new Dimension(800, 720));
         editor.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
                 new EmptyBorder(10, 10, 10, 10)));
         editor.setBackground(MiniVMColor.AREA);

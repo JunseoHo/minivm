@@ -2,15 +2,19 @@ package visualizer.console;
 
 import os.shell.Shell;
 import visualizer.common.MiniVMColor;
+import visualizer.common.MiniVMPanel;
+import visualizer.common.MiniVMTextArea;
+import visualizer.common.MiniVMTextField;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.*;
 
-public class Console extends JPanel {
+public class Console extends MiniVMPanel {
     // model
     private Shell shell;
     // components
@@ -19,34 +23,13 @@ public class Console extends JPanel {
     private JTextField input;
 
     public Console(Shell shell) {
+        super(new BorderLayout());
         // set associations
         this.shell = shell;
-        // set attributes
-        setPreferredSize(new Dimension(1800, 260));
-        setBackground(MiniVMColor.BACKGROUND);
-        setLayout(new FlowLayout());
         // set components
         histories = new LinkedList<>();
-        output = new JTextArea();
-        output.setEditable(false);
-        output.setEnabled(false);
-        output.setPreferredSize(new Dimension(1800, 200));
-        output.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
-                new EmptyBorder(10, 10, 10, 10)));
-        output.setDisabledTextColor(Color.LIGHT_GRAY);
-        output.setFont(new Font("Arial", Font.PLAIN, 15));
-        output.setBackground(MiniVMColor.AREA);
-        add(output);
-        input = new JTextField();
-        input.setPreferredSize(new Dimension(1800, 30));
-        input.setBorder(new CompoundBorder(new LineBorder(new Color(68, 70, 72), 2),
-                new EmptyBorder(5, 5, 5, 5)));
-        input.setForeground(Color.LIGHT_GRAY);
-        input.setBackground(new Color(59, 62, 64));
-        input.addActionListener(e -> handleEnter());
-        input.setCaretColor(Color.LIGHT_GRAY);
-        input.setFont(new Font("Arial", Font.PLAIN, 15));
-        add(input);
+        add(output = new MiniVMTextArea(1500, 180, false), BorderLayout.CENTER);
+        add(input = new MiniVMTextField(1500, 30, e -> handleEnter()), BorderLayout.SOUTH);
     }
 
     private void addLine(String line) {

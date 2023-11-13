@@ -4,7 +4,8 @@ import java.awt.*;
 
 public class MiniVMColor {
 
-    public static final Color BACKGROUND = new Color(51, 53, 55);
-    public static final Color BORDER = new Color(68, 70, 72);
-    public static final Color AREA = new Color(59, 62, 64);
+    public static final Color BACKGROUND = new Color(242, 242, 242);
+    public static final Color BORDER = new Color(216, 216, 216);
+    public static final Color AREA = new Color(255, 255, 255);
+    public static final Color FONT_COLOR = new Color(10, 10, 10);
 }
