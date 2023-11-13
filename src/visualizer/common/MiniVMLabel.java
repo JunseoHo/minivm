@@ -8,7 +8,7 @@ public class MiniVMLabel extends JLabel {
 
     public MiniVMLabel(String text) {
         super(text);
-        setFont(new Font("Arial", Font.PLAIN, 20));
+        setFont(new MiniVMFont(20));
         setForeground(MiniVMColor.FONT_COLOR);
         setBorder(new EmptyBorder(20, 20, 10, 10));
     }

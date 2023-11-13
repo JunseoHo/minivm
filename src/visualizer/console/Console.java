@@ -15,6 +15,8 @@ import java.awt.*;
 import java.util.*;
 
 public class Console extends MiniVMPanel {
+    // attributes
+    private final int HISTORY_CAPACITY = 8;
     // model
     private Shell shell;
     // components
@@ -23,7 +25,6 @@ public class Console extends MiniVMPanel {
     private JTextField input;
 
     public Console(Shell shell) {
-        super(new BorderLayout());
         // set associations
         this.shell = shell;
         // set components
@@ -35,7 +36,7 @@ public class Console extends MiniVMPanel {
     private void addLine(String line) {
         String[] tokens = line.split("\n");
         histories.addAll(Arrays.asList(tokens));
-        while (histories.size() > 10) histories.poll();
+        while (histories.size() > HISTORY_CAPACITY) histories.poll();
         String text = "";
         for (String history : histories) text += history + "\n";
         output.setText(text);

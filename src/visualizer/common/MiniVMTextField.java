@@ -17,7 +17,7 @@ public class MiniVMTextField extends JTextField {
         setBackground(MiniVMColor.BACKGROUND);
         addActionListener(al);
         setCaretColor(MiniVMColor.FONT_COLOR);
-        setFont(new Font("Arial", Font.PLAIN, 15));
+        setFont(new MiniVMFont(15));
     }
 
 }

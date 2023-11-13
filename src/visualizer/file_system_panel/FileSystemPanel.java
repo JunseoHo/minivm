@@ -25,7 +25,7 @@ public class FileSystemPanel extends MiniVMPanel {
         this.fileSystem = filesystem;
         // create components
         add(new MiniVMLabel("File Manager"), BorderLayout.NORTH);
-        MiniVMPanel contents = new MiniVMPanel(new FlowLayout());
+        MiniVMPanel contents = new MiniVMPanel(new GridLayout(1, 3));
         contents.add(FAT = new MiniVMTextArea(250, 740, false));
         contents.add(dataRegion = new MiniVMTextArea(250, 740, false));
         contents.add(new FileEditorPanel(filesystem));

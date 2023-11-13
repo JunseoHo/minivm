@@ -1,7 +1,10 @@
 package visualizer.file_system_panel;
 
 import os.file_system.FileSystem;
+import visualizer.common.MiniVMButton;
 import visualizer.common.MiniVMColor;
+import visualizer.common.MiniVMPanel;
+import visualizer.common.MiniVMTextArea;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -11,7 +14,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class FileEditorPanel extends JPanel {
+public class FileEditorPanel extends MiniVMPanel {
 
     // associations
     private FileSystem fileSystem;
@@ -23,33 +26,12 @@ public class FileEditorPanel extends JPanel {
     public FileEditorPanel(FileSystem fileSystem) {
         // set associations
         this.fileSystem = fileSystem;
-        // set attributes
-        setBackground(MiniVMColor.BACKGROUND);
-        setLayout(new BorderLayout());
         // create components
-        editor = new JTextArea();
-        editor.setForeground(Color.LIGHT_GRAY);
-        editor.setPreferredSize(new Dimension(800, 720));
-        editor.setBorder(new CompoundBorder(new LineBorder(MiniVMColor.BORDER, 2),
-                new EmptyBorder(10, 10, 10, 10)));
-        editor.setBackground(MiniVMColor.AREA);
-        editor.setCaretColor(Color.LIGHT_GRAY);
-        editor.setFont(new Font("Arial", Font.PLAIN, 25));
-        add(editor, BorderLayout.CENTER);
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        buttonPanel.setBackground(MiniVMColor.BACKGROUND);
-        JButton btnOpen = new JButton("Open");
-        btnOpen.setBackground(MiniVMColor.BORDER);
-        btnOpen.setForeground(Color.LIGHT_GRAY);
-        btnOpen.setBorderPainted(false);
-        btnOpen.addActionListener(e -> open());
-        buttonPanel.add(btnOpen);
-        JButton btnSave = new JButton("Save");
-        btnSave.addActionListener(e -> save());
-        buttonPanel.add(btnSave);
-        JButton btnClose = new JButton("Close");
-        buttonPanel.add(btnClose);
+        add(editor = new MiniVMTextArea(800, 720, true), BorderLayout.CENTER);
+        JPanel buttonPanel = new MiniVMPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        buttonPanel.add(new MiniVMButton("Open", e -> open()));
+        buttonPanel.add(new MiniVMButton("Save", e -> save()));
+        buttonPanel.add(new MiniVMButton("Close", e -> close()));
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
@@ -79,6 +61,10 @@ public class FileEditorPanel extends JPanel {
         List<Byte> contents = new LinkedList<>();
         for (char c : editor.getText().toCharArray()) contents.add((byte) c);
         fileSystem.setContents(openedFileName, contents);
+    }
+
+    private void close(){
+
     }
 
 }
