@@ -17,11 +17,11 @@ import java.util.List;
 public class FileEditorPanel extends MiniVMPanel {
 
     // associations
-    private FileSystem fileSystem;
+    private final FileSystem fileSystem;
     // attributes
     private String openedFileName = null;
     // components
-    private JTextArea editor;
+    private final JTextArea editor;
 
     public FileEditorPanel(FileSystem fileSystem) {
         // set associations
@@ -37,19 +37,18 @@ public class FileEditorPanel extends MiniVMPanel {
 
     private void open() {
         if (openedFileName != null) {
-            JOptionPane.showMessageDialog(null, openedFileName + " is opened.", "Open failed", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, openedFileName + " is already opened.", "Open failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
         String fileName = JOptionPane.showInputDialog("Input file name");
         String message = fileSystem.open(fileName);
         if (message != null) {
-            JOptionPane.showMessageDialog(null, message, "Open failed", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, message, "Open failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        openedFileName = fileName;
-        List<Byte> contents = fileSystem.getContents(fileName);
+        List<Byte> contents = fileSystem.getContents(openedFileName = fileName);
         String str = "";
-        for (Byte c : contents) str = str + c;
+        for (Byte c : contents) str = str + Character.toString(c);
         editor.setText(str);
     }
 
@@ -63,8 +62,17 @@ public class FileEditorPanel extends MiniVMPanel {
         fileSystem.setContents(openedFileName, contents);
     }
 
-    private void close(){
-
+    private void close() {
+        if (openedFileName == null) {
+            JOptionPane.showMessageDialog(null, "File is not opened.", "Close failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        String message = fileSystem.close(openedFileName);
+        if (message != null)
+            JOptionPane.showMessageDialog(null, message, "Close failed", JOptionPane.ERROR_MESSAGE);
+        else
+            JOptionPane.showMessageDialog(null, "File " + openedFileName + " is closed.", "Close success", JOptionPane.PLAIN_MESSAGE);
+        openedFileName = null;
     }
 
 }

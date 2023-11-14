@@ -108,13 +108,15 @@ public class FileSystem {
     }
 
     public String open(String name) {
+        if (name == null || name.length() > 8 || name.length() < 1) return "Invalid file name.";
         int clusterNumber = findSubdirEntry(name);
         if (clusterNumber == -1) return "File " + name + " has been not found.";
-        DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
-        if (dirEntry.isOpened == 1) return "File " + name + " is already opened.";
-        dirEntry.isOpened = 1;
-        diskDriver.writeData(clusterNumber, dirEntry.intValues());
-        return "File " + name + " has been opened.";
+        DirectoryEntry dir = diskDriver.dirEntry(clusterNumber);
+        if (dir.type != 1) return name + " is not file.";
+        if (dir.isOpened == 1) return "File " + name + " is already opened.";
+        dir.isOpened = 1;
+        diskDriver.writeData(clusterNumber, dir.intValues());
+        return null;
     }
 
     public String close(String name) {
@@ -124,7 +126,7 @@ public class FileSystem {
         if (dirEntry.isOpened == 0) return "File " + name + " is already closed.";
         dirEntry.isOpened = 0;
         diskDriver.writeData(clusterNumber, dirEntry.intValues());
-        return "File " + name + " has been closed.";
+        return null;
     }
 
     public List<Byte> getContents(String name) {

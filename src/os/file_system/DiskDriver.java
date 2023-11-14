@@ -141,9 +141,9 @@ public class DiskDriver {
                 if (c != 0) name = c + name;
                 values[i] >>= 8;
             }
-        int isOpened = values[2];
-        values[2] >>= 8;
-        int type = values[2];
+        int isOpened = values[2] & 0xF;
+        values[2] >>= 16;
+        int type = values[2] & 0xF;
         int startingCluster = values[3];
         return new DirectoryEntry(name, type, isOpened, startingCluster);
     }
