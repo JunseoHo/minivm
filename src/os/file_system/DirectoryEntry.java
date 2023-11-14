@@ -33,7 +33,14 @@ public class DirectoryEntry {
 
     @Override
     public String toString() {
-        return String.format("%-10s%-6s", name, type == 0 ? "DIR" : "FILE");
+        String typeStr = "";
+        switch (type) {
+            case 0 -> typeStr = "DIR";
+            case 1 -> typeStr = "DATA";
+            case 2 -> typeStr = "EXE";
+            default -> typeStr = "UNKNOWN";
+        }
+        return String.format("%-10s%-8s", name, typeStr);
     }
 
 }

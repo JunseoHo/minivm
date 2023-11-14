@@ -42,6 +42,7 @@ public class FileSystem {
             DirectoryEntry dir = diskDriver.dirEntry(next);
             if (dir.name.equals(name)) {
                 if (dir.type != 0) return name + " is not directory.";
+                if (dir.startingCluster != -1) return name + " is not empty.";
                 if (prev == -1) superDir.startingCluster = diskDriver.readFAT(next);
                 else diskDriver.writeFAT(prev, diskDriver.readFAT(next));
                 diskDriver.writeFAT(next, 0);
@@ -68,6 +69,7 @@ public class FileSystem {
         }
         diskDriver.writeData(currentDir, superDir.intValues());
         diskDriver.writeData(newFileClusterNumber, newFile.intValues());
+        updateRecentChangedCluster(newFileClusterNumber);
         return "File " + name + " has been created.";
     }
 
@@ -91,9 +93,13 @@ public class FileSystem {
     }
 
     public String cd(String name) {
-        int clusterNumber = findSubdirEntry(name);
-        if (clusterNumber == -1) return name + " is not found.";
-        currentDir = clusterNumber;
+        if (name.equals("..")) currentDir = diskDriver.ROOT_DIR;
+        else {
+            int clusterNumber = findSubdirEntry(name);
+            if (clusterNumber == -1) return name + " is not found.";
+            if (diskDriver.dirEntry(clusterNumber).type != 0) return name + " is not directory.";
+            currentDir = clusterNumber;
+        }
         return "Directory changed.";
     }
 

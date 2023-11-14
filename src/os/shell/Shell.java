@@ -25,6 +25,7 @@ public class Shell {
             case "ls" -> message = ls(argv);
             case "touch" -> message = touch(argv);
             case "rm" -> message = rm(argv);
+            case "cd" -> message = cd(argv);
             case "exit" -> exit(0);
             default -> message = "command not found.";
         }
@@ -54,6 +55,11 @@ public class Shell {
     private String rm(String[] input) {
         if (input.length != 2) return "Invalid arguments.";
         return systemCall.rm(input[1]);
+    }
+
+    private String cd(String[] input){
+        if (input.length != 2) return "Invalid arguments.";
+        return systemCall.cd(input[1]);
     }
 
 }

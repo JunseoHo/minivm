@@ -34,4 +34,9 @@ public class OperatingSystem implements SystemCall {
     @Override
     public String rm(String name) { return fileSystem.rm(name); }
 
+    @Override
+    public String cd(String name) {
+        return fileSystem.cd(name);
+    }
+
 }
