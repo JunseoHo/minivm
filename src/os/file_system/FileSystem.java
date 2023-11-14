@@ -17,6 +17,7 @@ public class FileSystem {
 
     public String mkdir(String name) {
         if (name.length() > 8 || name.length() < 1) return "Invalid directory name.";
+        if (isExist(name)) return name + " already exists.";
         DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
         DirectoryEntry newDir = new DirectoryEntry(name, 0, -1);
         int newDirClusterNumber = diskDriver.allocate(16);
@@ -55,6 +56,7 @@ public class FileSystem {
 
     public String touch(String name) {
         if (name.length() > 8 || name.length() < 1) return "Invalid file name.";
+        if (isExist(name)) return name + " already exists.";
         DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
         DirectoryEntry newFile = new DirectoryEntry(name, 1, -1);
         int newFileClusterNumber = diskDriver.allocate(16);
@@ -156,6 +158,18 @@ public class FileSystem {
     public String getRecentChangedData() {
         return diskDriver.getImage((recentChangedCluster + diskDriver.FAT_SIZE) * 16,
                 ((recentChangedCluster + 18) + diskDriver.FAT_SIZE) * 16);
+    }
+
+    private boolean isExist(String name) {
+        if (name.length() > 8 || name.length() < 1) return false;
+        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
+        int next = superDir.startingCluster;
+        while (next != -1) {
+            DirectoryEntry dir = diskDriver.dirEntry(next);
+            if (dir.name.equals(name)) return true;
+            next = diskDriver.readFAT(next);
+        }
+        return false;
     }
 
     private int findSubdirEntry(String name) {
