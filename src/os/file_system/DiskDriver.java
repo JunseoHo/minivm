@@ -17,7 +17,7 @@ public class DiskDriver {
     // components
     private List<Cluster> clusters = null;
 
-    public void save() {
+    public void saveDiskImage() {
         disk.save();
     }
 

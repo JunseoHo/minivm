@@ -2,14 +2,10 @@ package visualizer.file_system_panel;
 
 import os.file_system.FileSystem;
 import visualizer.common.MiniVMButton;
-import visualizer.common.MiniVMColor;
 import visualizer.common.MiniVMPanel;
 import visualizer.common.MiniVMTextArea;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -46,7 +42,7 @@ public class FileEditorPanel extends MiniVMPanel {
             JOptionPane.showMessageDialog(null, message, "Open failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        List<Byte> contents = fileSystem.getContents(openedFileName = fileName);
+        List<Byte> contents = fileSystem.readContents(openedFileName = fileName);
         String str = "";
         for (Byte c : contents) str = str + Character.toString(c);
         editor.setText(str);
@@ -59,7 +55,7 @@ public class FileEditorPanel extends MiniVMPanel {
         }
         List<Byte> contents = new LinkedList<>();
         for (char c : editor.getText().toCharArray()) contents.add((byte) c);
-        fileSystem.setContents(openedFileName, contents);
+        fileSystem.writeContents(openedFileName, contents);
     }
 
     private void close() {

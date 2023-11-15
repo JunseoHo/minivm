@@ -142,7 +142,7 @@ public class FileSystem {
         return null;
     }
 
-    public List<Byte> getContents(String name) {
+    public List<Byte> readContents(String name) {
         if (!evaluateName(name)) return null;
         int clusterNumber = findSubdirClusterNumByName(name);
         if (clusterNumber == -1) return null;
@@ -151,16 +151,15 @@ public class FileSystem {
         return diskDriver.readContents(dir.startingCluster);
     }
 
-    public void setContents(String name, List<Byte> contents) {
+    public void writeContents(String name, List<Byte> contents) {
         if (!evaluateName(name)) return;
         int clusterNumber = findSubdirClusterNumByName(name);
         if (clusterNumber == -1) return;
-        DirectoryEntry dir = diskDriver.getDirectoryEntry(findSubdirClusterNumByName(name));
-        int startingCluster = diskDriver.allocate(contents.size());
+        DirectoryEntry dir = diskDriver.getDirectoryEntry(clusterNumber);
         diskDriver.free(dir.startingCluster);
-        dir.startingCluster = startingCluster;
+        dir.startingCluster = diskDriver.allocate(contents.size());
         diskDriver.writeData(clusterNumber, dir.intValues());
-        diskDriver.writeContents(startingCluster, contents);
+        diskDriver.writeContents(dir.startingCluster, contents);
     }
 
     public String getRecentChangedFAT() {
@@ -170,6 +169,11 @@ public class FileSystem {
     public String getRecentChangedData() {
         return diskDriver.getImage((recentModifiedClusterNumber + diskDriver.FAT_SIZE - 10) * 16,
                 ((recentModifiedClusterNumber + 10) + diskDriver.FAT_SIZE) * 16);
+    }
+
+    public String saveDiskImage() {
+        diskDriver.saveDiskImage();
+        return "Disk image is saved.";
     }
 
     private boolean isExist(String name) {
@@ -202,10 +206,6 @@ public class FileSystem {
         return true;
     }
 
-    private void updateRecentChangedCluster(int clusterNumber) {
-        recentModifiedClusterNumber = clusterNumber;
-    }
-
     private int endOfClusterChain(DirectoryEntry directoryEntry) {
         if (directoryEntry.startingCluster == -1) return -1;
         int clusterNumber = directoryEntry.startingCluster;
@@ -213,8 +213,4 @@ public class FileSystem {
         return clusterNumber;
     }
 
-    public String save() {
-        diskDriver.save();
-        return "Disk image is saved.";
-    }
 }

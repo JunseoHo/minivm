@@ -41,7 +41,7 @@ public class OperatingSystem implements SystemCall {
 
     @Override
     public String save() {
-        return fileSystem.save();
+        return fileSystem.saveDiskImage();
     }
 
 }
