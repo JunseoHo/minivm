@@ -4,7 +4,7 @@ import hardware.IODevice;
 
 public class RAM implements IODevice {
 
-    private static final int size = 8192;
+    private static final int size = 131072;
     private final Byte[] memories;
 
     public RAM() {
