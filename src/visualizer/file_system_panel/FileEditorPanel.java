@@ -67,7 +67,7 @@ public class FileEditorPanel extends MiniVMPanel {
         if (message != null)
             JOptionPane.showMessageDialog(null, message, "Close failed", JOptionPane.ERROR_MESSAGE);
         else
-            JOptionPane.showMessageDialog(null, "File " + openedFileName + " is closed.", "Close success", JOptionPane.PLAIN_MESSAGE);
+            JOptionPane.showMessageDialog(null, "File " + openedFileName + " is closed.", "Close success", JOptionPane.INFORMATION_MESSAGE);
         openedFileName = null;
     }
 
