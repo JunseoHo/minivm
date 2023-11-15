@@ -4,6 +4,8 @@ import hardware.IODevice;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -77,7 +79,7 @@ public class Disk implements IODevice {
             Scanner scanner = new Scanner(new File(System.getProperty("user.dir") + DISK_IMAGE_FILE_NAME));
             for (int addr = 0; addr < FLATTER_SIZE * FLATTER_COUNT; addr++) {
                 while (scanner.hasNextLine())
-                    for (String sectorValue : scanner.nextLine().split(" "))
+                    for (String sectorValue : scanner.nextLine().split("\\s+"))
                         write(addr++, Byte.parseByte(sectorValue, 16));
             }
             scanner.close();
@@ -90,4 +92,24 @@ public class Disk implements IODevice {
         return c > 31 && c < 127 ? (char) c : '.';
     }
 
+    public void save() {
+        String str = "";
+        for (int i = 0; i < size() / 4; i++) {
+            String line = "";
+            for (int j = 0; j < 4; j++) {
+                byte b = read(i * 4 + j);
+                line += (b < 0 ? "-" : "") + Integer.toHexString((Math.abs(b))) + " ";
+            }
+            str += line + "\n";
+        }
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(System.getProperty("user.dir") + DISK_IMAGE_FILE_NAME);
+            fw.write(str);
+            fw.flush();
+            fw.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

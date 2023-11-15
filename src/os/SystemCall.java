@@ -14,4 +14,6 @@ public interface SystemCall {
     String rm(String name);
 
     String cd(String name);
+
+    String save();
 }

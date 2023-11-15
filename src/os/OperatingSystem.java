@@ -39,4 +39,9 @@ public class OperatingSystem implements SystemCall {
         return fileSystem.cd(name);
     }
 
+    @Override
+    public String save() {
+        return fileSystem.save();
+    }
+
 }

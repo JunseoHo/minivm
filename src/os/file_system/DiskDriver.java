@@ -17,6 +17,10 @@ public class DiskDriver {
     // components
     private List<Cluster> clusters = null;
 
+    public void save() {
+        disk.save();
+    }
+
     private class Cluster {
         public int number;
         public int base;

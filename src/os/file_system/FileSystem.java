@@ -193,4 +193,8 @@ public class FileSystem {
             recentChangedCluster = clusterNumber;
     }
 
+    public String save() {
+        diskDriver.save();
+        return "Disk image is saved.";
+    }
 }
