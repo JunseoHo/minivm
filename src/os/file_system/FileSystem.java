@@ -7,119 +7,122 @@ import java.util.List;
 
 public class FileSystem {
 
-    private DiskDriver diskDriver = null;
-    private int currentDir = 0;
-    private int recentChangedCluster = 0;
+    // attributes
+    private static final int DIR_ENTRY_SIZE = 16;
+    private final DiskDriver diskDriver;
+    private int currentDirClusterNumber;
+    private int recentModifiedClusterNumber;
 
     public FileSystem(Disk disk) {
-        currentDir = (diskDriver = new DiskDriver(disk)).ROOT_DIR;
+        recentModifiedClusterNumber = currentDirClusterNumber
+                = (diskDriver = new DiskDriver(disk)).ROOT_DIR;
     }
 
     public String mkdir(String name) {
-        if (name.length() > 8 || name.length() < 1) return "Invalid directory name.";
+        if (!evaluateName(name)) return "Invalid directory name.";
         if (isExist(name)) return name + " already exists.";
-        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
-        DirectoryEntry newDir = new DirectoryEntry(name, 0, -1);
-        int newDirClusterNumber = diskDriver.allocate(16);
-        if (superDir.startingCluster == -1) superDir.startingCluster = newDirClusterNumber;
-        else {
-            int lastCluster = superDir.startingCluster;
-            while (diskDriver.readFAT(lastCluster) != -1) lastCluster = diskDriver.readFAT(lastCluster);
-            diskDriver.writeFAT(lastCluster, newDirClusterNumber);
-        }
-        diskDriver.writeData(currentDir, superDir.intValues());
+        int newDirClusterNumber = diskDriver.allocate(DIR_ENTRY_SIZE);
+        if (newDirClusterNumber == -1) return "Out of disk memory.";
+        DirectoryEntry superDir = diskDriver.getDirectoryEntry(currentDirClusterNumber);
+        DirectoryEntry newDir = new DirectoryEntry(name, 0, 0, -1);
+        int endOfClusterChain = endOfClusterChain(superDir);
+        if (endOfClusterChain == -1) superDir.startingCluster = newDirClusterNumber;
+        else diskDriver.writeFAT(endOfClusterChain, newDirClusterNumber);
+        diskDriver.writeData(currentDirClusterNumber, superDir.intValues());
         diskDriver.writeData(newDirClusterNumber, newDir.intValues());
-        updateRecentChangedCluster(newDirClusterNumber);
+        recentModifiedClusterNumber = newDirClusterNumber;
         return "Directory " + name + " has been created.";
     }
 
     public String rmdir(String name) {
-        if (name.length() > 8 || name.length() < 1) return "Invalid directory name.";
-        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
-        int prev = -1;
-        int next = superDir.startingCluster;
-        while (next != -1) {
-            DirectoryEntry dir = diskDriver.dirEntry(next);
-            if (dir.name.equals(name)) {
-                if (dir.type != 0) return name + " is not directory.";
-                if (dir.startingCluster != -1) return name + " is not empty.";
-                if (prev == -1) superDir.startingCluster = diskDriver.readFAT(next);
-                else diskDriver.writeFAT(prev, diskDriver.readFAT(next));
-                diskDriver.writeFAT(next, 0);
-                diskDriver.writeData(currentDir, superDir.intValues());
+        if (!evaluateName(name)) return "Invalid directory name.";
+        if (!isExist(name)) return "Directory " + name + " is not found.";
+        DirectoryEntry superDir = diskDriver.getDirectoryEntry(currentDirClusterNumber);
+        int[] clusterNumbers = new int[]{-1, superDir.startingCluster};
+        while (clusterNumbers[1] != -1) {
+            DirectoryEntry subDir = diskDriver.getDirectoryEntry(clusterNumbers[1]);
+            if (subDir.name.equals(name)) {
+                if (subDir.type != 0) return name + " is not directory.";
+                if (subDir.startingCluster != -1) return name + " is not empty.";
+                if (clusterNumbers[0] == -1) superDir.startingCluster = diskDriver.readFAT(clusterNumbers[1]);
+                else diskDriver.writeFAT(clusterNumbers[0], diskDriver.readFAT(clusterNumbers[1]));
+                diskDriver.writeFAT(clusterNumbers[1], 0);
+                diskDriver.writeData(currentDirClusterNumber, superDir.intValues());
+                recentModifiedClusterNumber = clusterNumbers[1];
                 return "Directory " + name + " has been removed.";
             }
-            prev = next;
-            next = diskDriver.readFAT(prev);
+            clusterNumbers[1] = diskDriver.readFAT(clusterNumbers[0] = clusterNumbers[1]);
         }
         return "Directory " + name + " has been not found.";
     }
 
     public String touch(String name) {
-        if (name.length() > 8 || name.length() < 1) return "Invalid file name.";
+        if (!evaluateName(name)) return "Invalid file name.";
         if (isExist(name)) return name + " already exists.";
-        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
-        DirectoryEntry newFile = new DirectoryEntry(name, 1, -1);
-        int newFileClusterNumber = diskDriver.allocate(16);
-        if (superDir.startingCluster == -1) superDir.startingCluster = newFileClusterNumber;
-        else {
-            int lastCluster = superDir.startingCluster;
-            while (diskDriver.readFAT(lastCluster) != -1) lastCluster = diskDriver.readFAT(lastCluster);
-            diskDriver.writeFAT(lastCluster, newFileClusterNumber);
-        }
-        diskDriver.writeData(currentDir, superDir.intValues());
+        int newFileClusterNumber = diskDriver.allocate(DIR_ENTRY_SIZE);
+        if (newFileClusterNumber == -1) return "Out of disk memory.";
+        DirectoryEntry superDir = diskDriver.getDirectoryEntry(currentDirClusterNumber);
+        DirectoryEntry newFile = new DirectoryEntry(name, 1, 0, -1);
+        int endOfClusterChain = endOfClusterChain(superDir);
+        if (endOfClusterChain == -1) superDir.startingCluster = newFileClusterNumber;
+        else diskDriver.writeFAT(endOfClusterChain, newFileClusterNumber);
+        diskDriver.writeData(currentDirClusterNumber, superDir.intValues());
         diskDriver.writeData(newFileClusterNumber, newFile.intValues());
-        updateRecentChangedCluster(newFileClusterNumber);
+        recentModifiedClusterNumber = newFileClusterNumber;
         return "File " + name + " has been created.";
     }
 
     public String rm(String name) {
-        if (name.length() > 8 || name.length() < 1) return "Invalid file name.";
-        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
-        int prev;
-        int next = superDir.startingCluster;
-        while (next != -1) {
-            DirectoryEntry file = diskDriver.dirEntry(next);
+        if (!evaluateName(name)) return "Invalid file name.";
+        if (!isExist(name)) return "File " + name + " is not found.";
+        DirectoryEntry superDir = diskDriver.getDirectoryEntry(currentDirClusterNumber);
+        int[] clusterNumbers = new int[]{-1, superDir.startingCluster};
+        while (clusterNumbers[1] != -1) {
+            DirectoryEntry file = diskDriver.getDirectoryEntry(clusterNumbers[1]);
             if (file.name.equals(name)) {
                 if (file.type != 1) return name + " is not file.";
+                if (file.isOpened == 1) return "File " + name + " is opened.";
                 diskDriver.free(file.startingCluster);
-                diskDriver.free(next);
+                if (clusterNumbers[0] == -1) superDir.startingCluster = diskDriver.readFAT(clusterNumbers[1]);
+                else diskDriver.writeFAT(clusterNumbers[0], diskDriver.readFAT(clusterNumbers[1]));
+                diskDriver.writeFAT(clusterNumbers[1], 0);
+                diskDriver.writeData(currentDirClusterNumber, superDir.intValues());
+                recentModifiedClusterNumber = clusterNumbers[1];
                 return "File " + name + " has been removed.";
             }
-            prev = next;
-            next = diskDriver.readFAT(prev);
+            clusterNumbers[1] = diskDriver.readFAT(clusterNumbers[0] = clusterNumbers[1]);
         }
         return "File " + name + " has been not found.";
     }
 
     public String cd(String name) {
-        if (name.equals("..")) currentDir = diskDriver.ROOT_DIR;
+        if (!evaluateName(name)) return "Invalid file name.";
+        if (name.equals("..")) currentDirClusterNumber = diskDriver.ROOT_DIR;
         else {
-            int clusterNumber = findSubdirEntry(name);
+            int clusterNumber = findSubdirClusterNumByName(name);
             if (clusterNumber == -1) return name + " is not found.";
-            if (diskDriver.dirEntry(clusterNumber).type != 0) return name + " is not directory.";
-            currentDir = clusterNumber;
+            if (diskDriver.getDirectoryEntry(clusterNumber).type != 0) return name + " is not directory.";
+            currentDirClusterNumber = clusterNumber;
         }
-        return "Directory changed.";
+        return "Directory changed into " + diskDriver.getDirectoryEntry(currentDirClusterNumber).name;
     }
 
     public String ls() {
-        String list = "";
-        DirectoryEntry dir = diskDriver.dirEntry(currentDir);
+        StringBuilder list = new StringBuilder();
+        DirectoryEntry dir = diskDriver.getDirectoryEntry(currentDirClusterNumber);
         int clusterNumber = dir.startingCluster;
         while (clusterNumber != -1) {
-            list += diskDriver.dirEntry(clusterNumber)
-                    + (diskDriver.readFAT(clusterNumber) == -1 ? "" : "\n");
+            list.append(diskDriver.getDirectoryEntry(clusterNumber)).append(diskDriver.readFAT(clusterNumber) == -1 ? "" : "\n");
             clusterNumber = diskDriver.readFAT(clusterNumber);
         }
-        return list;
+        return list.toString();
     }
 
     public String open(String name) {
-        if (name == null || name.length() > 8 || name.length() < 1) return "Invalid file name.";
-        int clusterNumber = findSubdirEntry(name);
+        if (!evaluateName(name)) return "Invalid file name.";
+        int clusterNumber = findSubdirClusterNumByName(name);
         if (clusterNumber == -1) return "File " + name + " has been not found.";
-        DirectoryEntry dir = diskDriver.dirEntry(clusterNumber);
+        DirectoryEntry dir = diskDriver.getDirectoryEntry(clusterNumber);
         if (dir.type != 1) return name + " is not file.";
         if (dir.isOpened == 1) return "File " + name + " is already opened.";
         dir.isOpened = 1;
@@ -128,69 +131,86 @@ public class FileSystem {
     }
 
     public String close(String name) {
-        int clusterNumber = findSubdirEntry(name);
+        if (!evaluateName(name)) return "Invalid file name.";
+        int clusterNumber = findSubdirClusterNumByName(name);
         if (clusterNumber == -1) return "File " + name + " has been not found.";
-        DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
-        if (dirEntry.isOpened == 0) return "File " + name + " is already closed.";
-        dirEntry.isOpened = 0;
-        diskDriver.writeData(clusterNumber, dirEntry.intValues());
+        DirectoryEntry dir = diskDriver.getDirectoryEntry(clusterNumber);
+        if (dir.type != 1) return name + " is not file.";
+        if (dir.isOpened == 0) return "File " + name + " is already closed.";
+        dir.isOpened = 0;
+        diskDriver.writeData(clusterNumber, dir.intValues());
         return null;
     }
 
     public List<Byte> getContents(String name) {
-        int clusterNumber = findSubdirEntry(name);
-        DirectoryEntry dirEntry = diskDriver.dirEntry(clusterNumber);
-        if (dirEntry == null) return null;
-        if (dirEntry.startingCluster == -1) return new LinkedList<>();
-        return diskDriver.readContents(dirEntry.startingCluster);
+        if (!evaluateName(name)) return null;
+        int clusterNumber = findSubdirClusterNumByName(name);
+        if (clusterNumber == -1) return null;
+        DirectoryEntry dir = diskDriver.getDirectoryEntry(clusterNumber);
+        if (dir.startingCluster == -1) return new LinkedList<>();
+        return diskDriver.readContents(dir.startingCluster);
     }
 
-    public boolean setContents(String name, List<Byte> contents) {
-        int clusterNumber = findSubdirEntry(name);
-        if (clusterNumber == -1) return false;
-        DirectoryEntry dir = diskDriver.dirEntry(findSubdirEntry(name));
+    public void setContents(String name, List<Byte> contents) {
+        if (!evaluateName(name)) return;
+        int clusterNumber = findSubdirClusterNumByName(name);
+        if (clusterNumber == -1) return;
+        DirectoryEntry dir = diskDriver.getDirectoryEntry(findSubdirClusterNumByName(name));
         int startingCluster = diskDriver.allocate(contents.size());
         diskDriver.free(dir.startingCluster);
         dir.startingCluster = startingCluster;
         diskDriver.writeData(clusterNumber, dir.intValues());
         diskDriver.writeContents(startingCluster, contents);
-        return true;
     }
 
     public String getRecentChangedFAT() {
-        return diskDriver.getImage(recentChangedCluster * 16, (recentChangedCluster + 18) * 16);
+        return diskDriver.getImage((recentModifiedClusterNumber - 40) * 4, (recentModifiedClusterNumber + 40) * 4);
     }
 
     public String getRecentChangedData() {
-        return diskDriver.getImage((recentChangedCluster + diskDriver.FAT_SIZE) * 16,
-                ((recentChangedCluster + 18) + diskDriver.FAT_SIZE) * 16);
+        return diskDriver.getImage((recentModifiedClusterNumber + diskDriver.FAT_SIZE - 10) * 16,
+                ((recentModifiedClusterNumber + 10) + diskDriver.FAT_SIZE) * 16);
     }
 
     private boolean isExist(String name) {
         if (name.length() > 8 || name.length() < 1) return false;
-        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
+        DirectoryEntry superDir = diskDriver.getDirectoryEntry(currentDirClusterNumber);
         int next = superDir.startingCluster;
         while (next != -1) {
-            DirectoryEntry dir = diskDriver.dirEntry(next);
+            DirectoryEntry dir = diskDriver.getDirectoryEntry(next);
             if (dir.name.equals(name)) return true;
             next = diskDriver.readFAT(next);
         }
         return false;
     }
 
-    private int findSubdirEntry(String name) {
-        DirectoryEntry superDir = diskDriver.dirEntry(currentDir);
+    private int findSubdirClusterNumByName(String name) {
+        DirectoryEntry superDir = diskDriver.getDirectoryEntry(currentDirClusterNumber);
         int clusterNumber = superDir.startingCluster;
         while (clusterNumber != -1) {
-            if (diskDriver.dirEntry(clusterNumber).name.equals(name)) return clusterNumber;
+            if (diskDriver.getDirectoryEntry(clusterNumber).name.equals(name)) return clusterNumber;
             clusterNumber = diskDriver.readFAT(clusterNumber);
         }
         return -1;
     }
 
+    private boolean evaluateName(String name) {
+        if (name == null) return false;
+        char[] arr = name.toCharArray();
+        if (arr.length < 1 || arr.length > 8) return false; // invalid length
+        for (char c : arr) if (c < 32 || c > 126) return false; // invalid character
+        return true;
+    }
+
     private void updateRecentChangedCluster(int clusterNumber) {
-        if (clusterNumber < recentChangedCluster || clusterNumber > recentChangedCluster + 37)
-            recentChangedCluster = clusterNumber;
+        recentModifiedClusterNumber = clusterNumber;
+    }
+
+    private int endOfClusterChain(DirectoryEntry directoryEntry) {
+        if (directoryEntry.startingCluster == -1) return -1;
+        int clusterNumber = directoryEntry.startingCluster;
+        while (diskDriver.readFAT(clusterNumber) != -1) clusterNumber = diskDriver.readFAT(clusterNumber);
+        return clusterNumber;
     }
 
     public String save() {

@@ -60,6 +60,10 @@ public class Disk implements IODevice {
         if (begin >= end) return img;
         if (begin % 8 != 0) begin -= begin % 8;
         if (end % 8 != 0) end += 8 - (end % 8);
+        if (begin < 0) {
+            end += Math.abs(begin);
+            begin = 0;
+        }
         for (; begin <= end; begin += 8) {
             byte[] values = new byte[8];
             for (int i = 0; i < 8; i++) values[i] = read(begin + i);

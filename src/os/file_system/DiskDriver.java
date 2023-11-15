@@ -135,7 +135,7 @@ public class DiskDriver {
         writeFAT(clusterNumber, 0);
     }
 
-    public DirectoryEntry dirEntry(int clusterNumber) {
+    public DirectoryEntry getDirectoryEntry(int clusterNumber) {
         if (clusterNumber < 0 || clusterNumber > FAT_SIZE) return null;
         int[] values = clusters.get(FAT_SIZE + clusterNumber).read();
         String name = "";
