@@ -1,13 +1,18 @@
 package os;
 
 import hardware.disk.Disk;
+import hardware.mmu.MMU;
+import hardware.ram.RAM;
 import os.file_system.FileSystem;
+import os.memory_manager.MemoryManager;
 
 public class OperatingSystem implements SystemCall {
 
+    public final MemoryManager memoryManager;
     public final FileSystem fileSystem;
 
-    public OperatingSystem(Disk disk) {
+    public OperatingSystem(MMU mmu, RAM ram, Disk disk) {
+        this.memoryManager = new MemoryManager(mmu, ram);
         this.fileSystem = new FileSystem(disk);
     }
 
@@ -32,7 +37,9 @@ public class OperatingSystem implements SystemCall {
     }
 
     @Override
-    public String rm(String name) { return fileSystem.rm(name); }
+    public String rm(String name) {
+        return fileSystem.rm(name);
+    }
 
     @Override
     public String cd(String name) {

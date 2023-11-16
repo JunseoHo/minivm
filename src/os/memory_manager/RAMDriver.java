@@ -13,7 +13,7 @@ public class RAMDriver {
     // hardware
     private RAM ram;
     // components
-    public Integer[] frameTable;
+    private Integer[] frameTable;
 
     public RAMDriver(RAM ram) {
         // set associations
@@ -23,7 +23,7 @@ public class RAMDriver {
     }
 
     public int allocate(int size) {
-        int frameCount = size / FRAME_SIZE + 1;
+        int frameCount = size / FRAME_SIZE + (size % FRAME_SIZE == 0 ? 0 : 1);
         List<Integer> allocatedFrameIndexes = new LinkedList<>();
         for (int frameIndex = 0; frameIndex < frameTable.length; frameIndex++) {
             if (frameTable[frameIndex] == null) allocatedFrameIndexes.add(frameIndex);
@@ -39,10 +39,18 @@ public class RAMDriver {
     }
 
     public Byte read(int frameIndex, int offset) {
+        while (offset > FRAME_SIZE) {
+            if ((frameIndex = frameTable[frameIndex]) == -1) return null;
+            offset -= FRAME_SIZE;
+        }
         return ram.read(frameIndex * FRAME_SIZE + offset);
     }
 
     public boolean write(int frameIndex, int offset, Byte val) {
+        while (offset > FRAME_SIZE) {
+            if ((frameIndex = frameTable[frameIndex]) == -1) return false;
+            offset -= FRAME_SIZE;
+        }
         return ram.write(frameIndex * FRAME_SIZE + offset, val);
     }
 

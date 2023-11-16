@@ -10,4 +10,9 @@ public class Page {
         this.size = size;
     }
 
+    @Override
+    public String toString() {
+        return "Page [" + frameIndex + ", " + size + "]";
+    }
+
 }

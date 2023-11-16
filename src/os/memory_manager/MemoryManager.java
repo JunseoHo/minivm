@@ -1,10 +1,9 @@
 package os.memory_manager;
 
+import hardware.mmu.MMU;
 import hardware.ram.RAM;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class MemoryManager {
     // attributes
@@ -13,7 +12,8 @@ public class MemoryManager {
     private RAMDriver ramDriver;
     private final Queue<Page> pageTable = new LinkedList<>();
 
-    public MemoryManager(RAM ram) {
+    public MemoryManager(MMU mmu, RAM ram) {
+        mmu.associate(this);
         this.ramDriver = new RAMDriver(ram);
         int frameIndex;
         while ((frameIndex = ramDriver.allocate(PAGE_SIZE)) != -1)

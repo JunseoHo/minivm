@@ -13,6 +13,7 @@ public class RAM implements IODevice {
 
     @Override
     public Byte read(int addr) {
+        System.out.println(addr);
         if (addr < 0 || addr > size - 1) return null;
         return memories[addr];
     }
