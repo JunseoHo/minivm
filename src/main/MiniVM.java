@@ -10,10 +10,9 @@ import visualizer.MiniVMVisualizer;
 public class MiniVM {
 
     public static void main(String[] args) {
-        MMU mmu = new MMU();
         RAM ram = new RAM();
         Disk disk = new Disk();
-        OperatingSystem os = new OperatingSystem(mmu, ram, disk);
+        OperatingSystem os = new OperatingSystem(ram, disk);
         MiniVMVisualizer visualizer = new MiniVMVisualizer(os, new Shell(os));
         visualizer.setVisible(true);
     }

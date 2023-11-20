@@ -1,43 +1,50 @@
 package os.memory_manager;
 
-import hardware.mmu.MMU;
 import hardware.ram.RAM;
 
 import java.util.*;
 
 public class MemoryManager {
+    // hardware
+    private RAM ram;
     // attributes
     private static final int PAGE_SIZE = 64;
     // components
-    private RAMDriver ramDriver;
-    private final Queue<Page> pageTable = new LinkedList<>();
+    private final Boolean[] pageTable;
 
-    public MemoryManager(MMU mmu, RAM ram) {
-        mmu.associate(this);
-        this.ramDriver = new RAMDriver(ram);
-        int frameIndex;
-        while ((frameIndex = ramDriver.allocate(PAGE_SIZE)) != -1)
-            pageTable.add(new Page(frameIndex, PAGE_SIZE));
+    public MemoryManager(RAM ram) {
+        // set associations
+        this.ram = ram;
+        // create components
+        pageTable = new Boolean[ram.size() / PAGE_SIZE];
+        Arrays.fill(pageTable, false);
     }
 
-    public Byte read(int frameIndex, int offset) {
-        return ramDriver.read(frameIndex, offset);
+    public Byte read(int pageIndex, int displacement) {
+        if (displacement < 0 || displacement > PAGE_SIZE - 1) return null;
+        return ram.read(pageIndex * PAGE_SIZE + displacement);
     }
 
-    public boolean write(int frameIndex, int offset, Byte val) {
-        return ramDriver.write(frameIndex, offset, val);
+    public boolean write(int pageIndex, int displacement, Byte val) {
+        if (displacement < 0 || displacement > PAGE_SIZE - 1) return false;
+        return ram.write(pageIndex * PAGE_SIZE + displacement, val);
     }
 
-    public List<Page> allocate(int size) {
-        int pageCount = size / PAGE_SIZE + 1;
-        if (pageTable.size() < pageCount) return null; // out of page
-        List<Page> allocatedPages = new LinkedList<>();
-        for (int i = 0; i < pageCount; i++) allocatedPages.add(pageTable.poll());
-        return allocatedPages;
+
+    public List<Integer> allocate(int size) {
+        int pageCount = size / PAGE_SIZE + (size % PAGE_SIZE > 0 ? 1 : 0);
+        List<Integer> allocatedPageTable = new LinkedList<>();
+        for (int pageIndex = 0; pageIndex < pageTable.length; pageIndex++) {
+            if (!pageTable[pageIndex]) allocatedPageTable.add(pageIndex);
+            if (allocatedPageTable.size() == pageCount) break;
+        }
+        if (allocatedPageTable.size() < pageCount) return null;
+        for (int pageIndex : allocatedPageTable) pageTable[pageIndex] = true;
+        return allocatedPageTable;
     }
 
-    public void free(List<Page> pages) {
-        pageTable.addAll(pages);
+    public void free(List<Integer> allocatedPageTable) {
+        for (int pageIndex : allocatedPageTable) pageTable[pageIndex] = false;
     }
 
 }

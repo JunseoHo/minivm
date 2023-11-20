@@ -1,7 +1,6 @@
 package os;
 
 import hardware.disk.Disk;
-import hardware.mmu.MMU;
 import hardware.ram.RAM;
 import os.file_system.FileSystem;
 import os.memory_manager.MemoryManager;
@@ -11,8 +10,8 @@ public class OperatingSystem implements SystemCall {
     public final MemoryManager memoryManager;
     public final FileSystem fileSystem;
 
-    public OperatingSystem(MMU mmu, RAM ram, Disk disk) {
-        this.memoryManager = new MemoryManager(mmu, ram);
+    public OperatingSystem(RAM ram, Disk disk) {
+        this.memoryManager = new MemoryManager(ram);
         this.fileSystem = new FileSystem(disk);
     }
 
