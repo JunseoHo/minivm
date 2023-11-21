@@ -16,4 +16,8 @@ public interface SystemCall {
     String cd(String name);
 
     String save();
+
+    void run();
+
+    void generateIntr(SIRQ sirq);
 }
