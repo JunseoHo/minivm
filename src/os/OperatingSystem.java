@@ -1,51 +1,89 @@
 package os;
 
+import cpu.CPU;
 import hardware.disk.Disk;
 import hardware.ram.RAM;
+import os.compiler.Compiler;
 import os.file_system.FileSystem;
 import os.memory_manager.MemoryManager;
+import os.process_manager.ProcessManager;
+import os.process_manager.Process;
 
-public class OperatingSystem implements SystemCall {
+import java.nio.file.Path;
+import java.util.List;
 
+public class OperatingSystem {
+
+    public final ProcessManager processManager;
     public final MemoryManager memoryManager;
     public final FileSystem fileSystem;
 
-    public OperatingSystem(RAM ram, Disk disk) {
-        this.memoryManager = new MemoryManager(ram);
-        this.fileSystem = new FileSystem(disk);
+    public OperatingSystem(CPU cpu, RAM ram, Disk disk) {
+        processManager = new ProcessManager(cpu);
+        memoryManager = new MemoryManager(ram);
+        fileSystem = new FileSystem(disk);
+
+        processManager.associate(memoryManager);
+        processManager.associate(fileSystem);
+
+        processManager.createInitProcess();
     }
 
-    @Override
+    public int readMemory(int logicalAddr) {
+        int pageNumber = logicalAddr >> 6;
+        int displacement = logicalAddr & 63;
+        int pageIndex = processManager.getRunningProcess().pageTable.get(pageNumber);
+        return memoryManager.read(pageIndex, displacement);
+    }
+
+    public boolean writeMemory(int logicalAddr, int val) {
+        int pageNumber = logicalAddr >> 6;
+        int displacement = logicalAddr & 63;
+        int pageIndex = processManager.getRunningProcess().pageTable.get(pageNumber);
+        return memoryManager.write(pageIndex, displacement, val);
+    }
+
+    public int malloc(int size) {
+        /* NOT IMPLEMENTED */
+        return -1;
+    }
+
+    public void free(int logicalAddr) {
+        /* NOT IMPLEMENTED */
+    }
+
+    public void terminate() {
+        processManager.terminateProcess();
+    }
+
+    public void switchContext() {
+        processManager.switchContext();
+    }
+
     public String mkdir(String name) {
         return fileSystem.mkdir(name);
     }
 
-    @Override
     public String rmdir(String name) {
         return fileSystem.rmdir(name);
     }
 
-    @Override
     public String ls() {
         return fileSystem.ls();
     }
 
-    @Override
     public String touch(String name) {
         return fileSystem.touch(name);
     }
 
-    @Override
     public String rm(String name) {
         return fileSystem.rm(name);
     }
 
-    @Override
     public String cd(String name) {
         return fileSystem.cd(name);
     }
 
-    @Override
     public String save() {
         return fileSystem.saveDiskImage();
     }

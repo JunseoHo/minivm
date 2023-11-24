@@ -1,20 +1,21 @@
 package main;
 
+import cpu.CPU;
 import hardware.disk.Disk;
-import hardware.mmu.MMU;
 import hardware.ram.RAM;
 import os.OperatingSystem;
-import os.shell.Shell;
 import visualizer.MiniVMVisualizer;
 
 public class MiniVM {
 
     public static void main(String[] args) {
+        CPU cpu = new CPU();
         RAM ram = new RAM();
         Disk disk = new Disk();
-        OperatingSystem os = new OperatingSystem(ram, disk);
-        MiniVMVisualizer visualizer = new MiniVMVisualizer(os, new Shell(os));
-        visualizer.setVisible(true);
+        OperatingSystem os = new OperatingSystem(cpu, ram, disk);
+        cpu.associate(os);
+        new Thread(cpu).start();
+        new MiniVMVisualizer(os, null).setVisible(true);
     }
 
 }

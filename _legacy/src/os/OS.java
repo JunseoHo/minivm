@@ -8,7 +8,6 @@ import hardware.storage.Storage;
 import os.file_manager.FileManager;
 import os.io_manager.IOManager;
 import os.memory_manager.MemoryManager;
-import os.process_manager.ProcessManager;
 
 public class OS extends Component<SIRQ> implements SystemCall {
 

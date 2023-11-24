@@ -2,45 +2,39 @@ package hardware.ram;
 
 import hardware.IODevice;
 
-public class RAM implements IODevice {
+public class RAM {
 
-    private static final int size = 131072;
-    private final Byte[] memories;
+    private static final int size = 32768;
+    private final Integer[] memories;
 
     public RAM() {
-        memories = new Byte[size];
+        memories = new Integer[size];
     }
 
-    @Override
-    public Byte read(int addr) {
-        System.out.println(addr);
+    public Integer read(int addr) {
         if (addr < 0 || addr > size - 1) return null;
         return memories[addr];
     }
 
-    @Override
-    public Byte[] read(int addr, int size) {
-        Byte[] values = new Byte[size];
+    public Integer[] read(int addr, int size) {
+        Integer[] values = new Integer[size];
         for (int i = 0; i < size; i++)
             if ((values[i] = read(addr + i)) == null) return null;
         return values;
     }
 
-    @Override
-    public boolean write(int addr, byte val) {
+    public boolean write(int addr, Integer val) {
         if (addr < 0 || addr > size - 1) return false;
         memories[addr] = val;
         return true;
     }
 
-    @Override
-    public boolean write(int addr, byte[] val) {
+    public boolean write(int addr, Integer[] val) {
         for (int i = 0; i < val.length; i++)
             if (!write(addr + i, val[i])) return false;
         return true;
     }
 
-    @Override
     public int size() {
         return size;
     }

@@ -2,7 +2,6 @@ package visualizer;
 
 import os.SIRQ;
 import os.SWName;
-import os.SystemCall;
 
 import javax.swing.*;
 import java.awt.*;

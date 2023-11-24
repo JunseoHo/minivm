@@ -9,7 +9,6 @@ import hardware.HWName;
 import hardware.HW_ISR;
 import os.SIRQ;
 import os.SWName;
-import os.SystemCall;
 
 import java.util.HashMap;
 import java.util.Map;

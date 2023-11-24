@@ -1,7 +1,5 @@
 package visualizer;
 
-import os.SystemCall;
-
 import javax.swing.*;
 import java.awt.*;
 

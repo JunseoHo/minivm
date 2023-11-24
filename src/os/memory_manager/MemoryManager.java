@@ -20,12 +20,12 @@ public class MemoryManager {
         Arrays.fill(pageTable, false);
     }
 
-    public Byte read(int pageIndex, int displacement) {
+    public Integer read(int pageIndex, int displacement) {
         if (displacement < 0 || displacement > PAGE_SIZE - 1) return null;
         return ram.read(pageIndex * PAGE_SIZE + displacement);
     }
 
-    public boolean write(int pageIndex, int displacement, Byte val) {
+    public boolean write(int pageIndex, int displacement, Integer val) {
         if (displacement < 0 || displacement > PAGE_SIZE - 1) return false;
         return ram.write(pageIndex * PAGE_SIZE + displacement, val);
     }

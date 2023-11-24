@@ -9,7 +9,6 @@ import hardware.io_device.IODevice;
 import hardware.io_device.Out;
 import hardware.storage.Storage;
 import os.OS;
-import os.SystemCall;
 import visualizer.MiniVMVisualizer;
 
 import javax.swing.*;

@@ -3,7 +3,6 @@ package visualizer;
 import interrupt.Utils;
 import hardware.Memory;
 import os.SWName;
-import os.SystemCall;
 
 import javax.swing.*;
 import java.awt.*;

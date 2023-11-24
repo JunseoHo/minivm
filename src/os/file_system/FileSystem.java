@@ -162,6 +162,12 @@ public class FileSystem {
         diskDriver.writeContents(dir.startingCluster, contents);
     }
 
+    public int type(String name) {
+        int clusterNumber = findSubdirClusterNumByName(name);
+        if (clusterNumber == -1) return -1;
+        return diskDriver.getDirectoryEntry(clusterNumber).type;
+    }
+
     public String getRecentChangedFAT() {
         return diskDriver.getImage((recentModifiedClusterNumber - 40) * 4, (recentModifiedClusterNumber + 40) * 4);
     }
