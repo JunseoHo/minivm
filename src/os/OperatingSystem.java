@@ -1,16 +1,11 @@
 package os;
 
-import cpu.CPU;
+import hardware.cpu.CPU;
 import hardware.disk.Disk;
 import hardware.ram.RAM;
-import os.compiler.Compiler;
 import os.file_system.FileSystem;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
-import os.process_manager.Process;
-
-import java.nio.file.Path;
-import java.util.List;
 
 public class OperatingSystem {
 

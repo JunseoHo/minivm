@@ -1,4 +1,4 @@
-package cpu;
+package hardware.cpu;
 
 public class CPUContext {
     // special-purpose registers

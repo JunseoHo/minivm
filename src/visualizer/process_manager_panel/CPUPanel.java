@@ -1,11 +1,8 @@
 package visualizer.process_manager_panel;
 
-import common.MiniVMUtils;
-import cpu.CPUContext;
+import hardware.cpu.CPUContext;
 import os.process_manager.ProcessManager;
-import visualizer.common.MiniVMLabel;
 import visualizer.common.MiniVMPanel;
-import visualizer.common.MiniVMTextField;
 
 import java.awt.*;
 

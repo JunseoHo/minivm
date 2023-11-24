@@ -1,6 +1,5 @@
 package visualizer.process_manager_panel;
 
-import os.file_system.FileSystem;
 import os.process_manager.ProcessManager;
 import visualizer.common.MiniVMPanel;
 

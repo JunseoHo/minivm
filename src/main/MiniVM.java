@@ -1,6 +1,6 @@
 package main;
 
-import cpu.CPU;
+import hardware.cpu.CPU;
 import hardware.disk.Disk;
 import hardware.ram.RAM;
 import os.OperatingSystem;
