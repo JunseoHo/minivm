@@ -1,21 +1,20 @@
 package common.bus;
 
-import common.SyncQueue;
-import interrupt.IRQ;
-import interrupt.Intr;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
-public class Component<T extends IRQ> {
+public class Component<T extends Event> {
 
     private Bus<T> bus;
     private String name;
-    protected SyncQueue<T> queue;
+    protected Queue<T> queue;
 
     public Component() {
         bus = null;
         name = null;
-        queue = new SyncQueue<>();
+        queue = new LinkedList<>();
     }
 
     public boolean associate(Bus<T> bus, String name) {
@@ -46,12 +45,12 @@ public class Component<T extends IRQ> {
         return o;
     }
 
-    protected T receive(Intr... targetIds) {
+    protected T receive(int... targetIds) {
         if (bus == null || name == null) return null;
         while (true) {
             T o = receive();
-            for (Intr id : targetIds) if (o.id == id) return o;
-            queue.enqueue(o);
+            for (int id : targetIds) if (o.id() == id) return o;
+            queue.add(o);
         }
     }
 
@@ -62,12 +61,12 @@ public class Component<T extends IRQ> {
 
     protected boolean enqueue(T o) {
         if (o == null) return false;
-        return queue.enqueue(o);
+        return queue.add(o);
     }
 
     protected T dequeue() {
         if (queue.isEmpty()) return null;
-        return queue.dequeue();
+        return queue.poll();
     }
 
     protected boolean isEmpty() {
