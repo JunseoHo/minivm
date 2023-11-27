@@ -24,6 +24,7 @@ public class ProcessManager {
     // components
     private Process runningProcess = null;
     private final Queue<Process> readyQueue = new LinkedList<>();
+    private final Queue<Process> blockQueue = new LinkedList<>();
 
     public ProcessManager(CPU cpu) {
         // set associations
@@ -102,6 +103,14 @@ public class ProcessManager {
 
     public CPUContext getCPUContext() {
         return cpu.getContext();
+    }
+
+    public Queue<Process> getReadyQueue() {
+        return readyQueue;
+    }
+
+    public Queue<Process> getBlockQueue() {
+        return blockQueue;
     }
 
 }

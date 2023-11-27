@@ -24,12 +24,6 @@ public class MiniVM {
         cpu.associate(os);
         new Thread(cpu).start();
         new MiniVMVisualizer(os, new Shell(os)).setVisible(true);
-//        String fileName = "assembly_source/sum5";
-//        Scanner scanner = new Scanner(new File(fileName));
-//        String program = "";
-//        while (scanner.hasNextLine()) program += scanner.nextLine() + "\n";
-//        List<Integer> machineCodes = Compiler.compile(program);
-//        System.out.println(os.createProcess(machineCodes));
     }
 
 }

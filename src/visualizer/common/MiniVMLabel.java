@@ -10,6 +10,7 @@ public class MiniVMLabel extends JLabel {
         super(text);
         setFont(new MiniVMFont(20));
         setForeground(MiniVMColor.FONT_COLOR);
+        setBackground(Color.BLUE);
         setBorder(new EmptyBorder(20, 20, 10, 10));
     }
 
