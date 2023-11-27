@@ -6,12 +6,13 @@ import java.util.List;
 public class Compiler {
 
     public static List<Integer> compile(List<Byte> bytes) {
-        String program = "";
+        StringBuilder program = new StringBuilder();
         for (Byte b : bytes) {
-            char c = Character.highSurrogate(b);
-            program += c;
+            if (b == 0) break;
+            char c = (char) (b & 0xFF); // Convert byte to char
+            program.append(c);
         }
-        return compile(program);
+        return compile(program.toString());
     }
 
     public static List<Integer> compile(String str) {

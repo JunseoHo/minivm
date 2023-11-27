@@ -3,12 +3,12 @@ im sto AX 0 0
 im lda AX 0 0
 im sto AX 0 1
 di lda AX 0 0
-im sub AX 0 100
+im sub AX 0 5
 im jpz AX 0 14
-im lda AX 0 1
+di lda AX 0 1
 di add AX 0 0
 im sto AX 0 1
-im lda AX 0 0
+di lda AX 0 0
 im add AX 0 1
 im sto AX 0 0
 im jmp AX 0 4

@@ -43,10 +43,10 @@ public class Console extends MiniVMPanel {
     }
 
     private void handleEnter() {
-//        String command = input.getText();
-//        addLine("$> " + command);
-//        addLine(shell.run(command));
-//        input.setText("");
+        String command = input.getText();
+        addLine("$> " + command);
+        addLine(shell.run(command));
+        input.setText("");
     }
 
 }

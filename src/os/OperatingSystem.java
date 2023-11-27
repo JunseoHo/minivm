@@ -7,6 +7,8 @@ import os.file_system.FileSystem;
 import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
 
+import java.util.List;
+
 public class OperatingSystem {
 
     public final ProcessManager processManager;
@@ -36,6 +38,14 @@ public class OperatingSystem {
         int displacement = logicalAddr & 63;
         int pageIndex = processManager.getRunningProcess().pageTable.get(pageNumber);
         return memoryManager.write(pageIndex, displacement, val);
+    }
+
+    public String createProcess(List<Integer> machineCodes) {
+        return processManager.createProcess(machineCodes);
+    }
+
+    public String createProcess(String fileName) {
+        return processManager.createProcess(fileName);
     }
 
     public int malloc(int size) {

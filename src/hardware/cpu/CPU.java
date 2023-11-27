@@ -73,7 +73,7 @@ public class CPU implements Runnable {
     }
 
     private void fetch() {
-        MAR = CS + PC;
+        MAR = CS + (PC++);
         MBR = os.readMemory(MAR);
     }
 

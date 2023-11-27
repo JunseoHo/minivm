@@ -67,6 +67,20 @@ public class ProcessManager {
         return "Process " + programName + " has been created.";
     }
 
+    public String createProcess(List<Integer> machineCodes) {
+        Process process = new Process(0, "Sample");
+        process.setCode(0, machineCodes.size());
+        process.setData(process.codeBase + process.codeSize, DEFAULT_DATA_SIZE);
+        process.setStack(process.dataBase + process.dataSize, DEFAULT_STACK_SIZE);
+        process.setHeap(process.stackBase + process.stackSize, DEFAULT_HEAP_SIZE);
+        if ((process.pageTable = memoryManager.allocate(process.size())) == null) return "Page fault.";
+        for (int codeIndex = 0; codeIndex < machineCodes.size(); codeIndex++)
+            memoryManager.write(process.pageTable.get(codeIndex >> 6), codeIndex & 63, machineCodes.get(codeIndex));
+        if (runningProcess == null) runningProcess = process;
+        else readyQueue.add(process);
+        return "Process " + "Sample" + " has been created.";
+    }
+
     public void switchContext() {
         if (runningProcess == null) return;
         runningProcess.setCPUContext(cpu.getContext());
