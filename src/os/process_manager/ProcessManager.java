@@ -12,7 +12,6 @@ import java.util.Queue;
 
 public class ProcessManager {
     // attributes
-    private static final String INIT_PROCESS_PATH = "/src/os/process_manager/init_process";
     private static final int DEFAULT_DATA_SIZE = 16;
     private static final int DEFAULT_STACK_SIZE = 64;
     private static final int DEFAULT_HEAP_SIZE = 64;
@@ -23,6 +22,7 @@ public class ProcessManager {
     private final CPU cpu;
     // components
     private Process runningProcess = null;
+    private boolean[] processIdTable = new boolean[100];
     private final Queue<Process> readyQueue = new LinkedList<>();
     private final Queue<Process> blockQueue = new LinkedList<>();
 
@@ -53,9 +53,10 @@ public class ProcessManager {
 
     public String createProcess(String programName) {
         List<Byte> program = fileSystem.readContents(programName);
+        if (program == null) return "File not found.";
         List<Integer> machineCodes = Compiler.compile(program);
         if (machineCodes == null) return "Compile error.";
-        Process process = new Process(0, programName);
+        Process process = new Process(getProcessId(), programName);
         process.setCode(0, machineCodes.size());
         process.setData(process.codeBase + process.codeSize, DEFAULT_DATA_SIZE);
         process.setStack(process.dataBase + process.dataSize, DEFAULT_STACK_SIZE);
@@ -92,6 +93,7 @@ public class ProcessManager {
 
     public void terminateProcess() {
         if (runningProcess == null) return;
+        freeProcessId(runningProcess.id);
         memoryManager.free(runningProcess.pageTable);
         runningProcess = readyQueue.poll();
         cpu.setContext(runningProcess.getCPUContext());
@@ -111,6 +113,20 @@ public class ProcessManager {
 
     public Queue<Process> getBlockQueue() {
         return blockQueue;
+    }
+
+    public int getProcessId() {
+        for (int i = 0; i < processIdTable.length; i++) {
+            if (!processIdTable[i]) {
+                processIdTable[i] = true;
+                return i + 10000;
+            }
+        }
+        return -1;
+    }
+
+    public void freeProcessId(int i) {
+        processIdTable[i - 10000] = false;
     }
 
 }

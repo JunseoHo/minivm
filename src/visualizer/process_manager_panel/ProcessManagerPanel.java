@@ -14,7 +14,7 @@ public class ProcessManagerPanel extends MiniVMPanel {
         add(new MiniVMLabel("Process Manager"), BorderLayout.NORTH);
         JPanel contentPanel = new MiniVMPanel(new GridLayout(1, 3));
         contentPanel.add(new CPUPanel(processManager));
-        contentPanel.add(new RunningProcessPanel());
+        contentPanel.add(new RunningProcessPanel(processManager));
         contentPanel.add(new ProcessQueuePanel(processManager));
         add(contentPanel, BorderLayout.CENTER);
     }
