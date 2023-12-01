@@ -6,6 +6,8 @@ import visualizer.common.MiniVMTable;
 import os.process_manager.Process;
 
 import java.awt.*;
+import java.util.Map;
+import java.util.Set;
 
 public class RunningProcessPanel extends MiniVMPanel {
 
@@ -40,6 +42,10 @@ public class RunningProcessPanel extends MiniVMPanel {
         PCB.add(new String[]{"HeapSize", Integer.toString(runningProcess.heapSize)});
         pageTable.clear();
         for (Integer pageNumber : runningProcess.pageTable) pageTable.add(new String[]{Integer.toString(pageNumber)});
+        heap.clear();
+        Set<Integer> keySet = runningProcess.objectTable.keySet();
+        for (Integer key : keySet)
+            heap.add(new String[]{Integer.toString(key), Integer.toString(runningProcess.objectTable.get(key))});
     }
 
 }

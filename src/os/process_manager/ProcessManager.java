@@ -8,6 +8,7 @@ import os.memory_manager.MemoryManager;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 public class ProcessManager {
@@ -117,8 +118,21 @@ public class ProcessManager {
         return blockQueue;
     }
 
-    public void allocate(int base, int size) {
-        runningProcess.addObject(base, size);
+    public int allocate(int size) {
+        Map<Integer, Integer> objTable = runningProcess.objectTable;
+        int left = 0, right = 0;
+        while (left < runningProcess.heapSize && right < runningProcess.heapSize) {
+            if (objTable.get(right) == null) {
+                if (right - left + 1 == size) {
+                    runningProcess.addObject(left, size);
+                    return left;
+                } else ++right;
+            } else {
+                left = right + 1;
+                right =left;
+            }
+        }
+        return -1;
     }
 
     public void free(int base) {

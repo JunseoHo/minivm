@@ -49,12 +49,11 @@ public class OperatingSystem {
     }
 
     public int malloc(int size) {
-        /* NOT IMPLEMENTED */
-        return -1;
+       return processManager.allocate(size);
     }
 
     public void free(int logicalAddr) {
-        /* NOT IMPLEMENTED */
+        processManager.free(logicalAddr);
     }
 
     public void terminate() {
