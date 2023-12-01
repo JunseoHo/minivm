@@ -120,16 +120,16 @@ public class ProcessManager {
 
     public int allocate(int size) {
         Map<Integer, Integer> objTable = runningProcess.objectTable;
-        int left = 0, right = 0;
-        while (left < runningProcess.heapSize && right < runningProcess.heapSize) {
+        int left = runningProcess.heapBase, right = runningProcess.heapBase;
+        while (left < runningProcess.heapSize + runningProcess.heapBase && right < runningProcess.heapSize + runningProcess.heapBase) {
             if (objTable.get(right) == null) {
                 if (right - left + 1 == size) {
                     runningProcess.addObject(left, size);
                     return left;
                 } else ++right;
             } else {
-                left = right + 1;
-                right =left;
+                left = objTable.get(right) + right;
+                right = left;
             }
         }
         return -1;
