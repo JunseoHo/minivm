@@ -64,6 +64,8 @@ public class ProcessManager {
         if ((process.pageTable = memoryManager.allocate(process.size())) == null) return "Page fault.";
         for (int codeIndex = 0; codeIndex < machineCodes.size(); codeIndex++)
             memoryManager.write(process.pageTable.get(codeIndex >> 6), codeIndex & 63, machineCodes.get(codeIndex));
+        for (int heapIndex = 0; heapIndex < process.heapSize; heapIndex++)
+            memoryManager.write(process.pageTable.get((heapIndex + process.heapBase) >> 6), (heapIndex + process.heapBase) & 63, null);
         if (runningProcess == null) runningProcess = process;
         else readyQueue.add(process);
         return "Process " + programName + " has been created.";
@@ -113,6 +115,14 @@ public class ProcessManager {
 
     public Queue<Process> getBlockQueue() {
         return blockQueue;
+    }
+
+    public void allocate(int base, int size) {
+        runningProcess.addObject(base, size);
+    }
+
+    public void free(int base) {
+        runningProcess.removeObject(base);
     }
 
     public int getProcessId() {

@@ -2,7 +2,9 @@ package os.process_manager;
 
 import hardware.cpu.CPUContext;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Process {
     // Process control block
@@ -18,11 +20,13 @@ public class Process {
     public int stackSize;
     public int heapSize;
     public List<Integer> pageTable;
+    public Map<Integer, Integer> objectTable;
 
     public Process(int id, String name) {
         this.id = id;
         this.name = name;
         this.cpuContext = new CPUContext();
+        this.objectTable = new HashMap<>();
     }
 
     public CPUContext getCPUContext() {
@@ -56,6 +60,14 @@ public class Process {
         heapBase = base;
         heapSize = size;
         cpuContext.HS = base;
+    }
+
+    public void addObject(int base, int size) {
+        objectTable.put(base, size);
+    }
+
+    public void removeObject(int base) {
+        objectTable.remove(base);
     }
 
     public int size() {
