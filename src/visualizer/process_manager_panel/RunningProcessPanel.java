@@ -1,5 +1,6 @@
 package visualizer.process_manager_panel;
 
+import os.memory_manager.MemoryManager;
 import os.process_manager.ProcessManager;
 import visualizer.common.MiniVMPanel;
 import visualizer.common.MiniVMTable;
@@ -12,16 +13,18 @@ import java.util.Set;
 public class RunningProcessPanel extends MiniVMPanel {
 
     private ProcessManager processManager;
+    private MemoryManager memoryManager;
 
     private MiniVMTable PCB;
     private MiniVMTable pageTable;
     private MiniVMTable heap;
 
-    public RunningProcessPanel(ProcessManager processManager) {
+    public RunningProcessPanel(ProcessManager processManager, MemoryManager memoryManager) {
         this.processManager = processManager;
+        this.memoryManager = memoryManager;
         setLayout(new GridLayout(3, 1));
         add(PCB = new MiniVMTable(new String[]{"Attribute", "Value"}));
-        add(pageTable = new MiniVMTable(new String[]{"Page Number"}));
+        add(pageTable = new MiniVMTable(new String[]{"Page Number", "Physical Address"}));
         add(heap = new MiniVMTable(new String[]{"Address", "Value"}));
         updateStart();
     }
@@ -41,7 +44,8 @@ public class RunningProcessPanel extends MiniVMPanel {
         PCB.add(new String[]{"HeapBase", Integer.toString(runningProcess.heapBase)});
         PCB.add(new String[]{"HeapSize", Integer.toString(runningProcess.heapSize)});
         pageTable.clear();
-        for (Integer pageNumber : runningProcess.pageTable) pageTable.add(new String[]{Integer.toString(pageNumber)});
+        for (Integer pageNumber : runningProcess.pageTable)
+            pageTable.add(new String[]{Integer.toString(pageNumber), Integer.toString(memoryManager.getPage(pageNumber).physicalBase)});
         heap.clear();
         Set<Integer> keySet = runningProcess.objectTable.keySet();
         for (Integer key : keySet)

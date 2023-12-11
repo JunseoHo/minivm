@@ -1,5 +1,6 @@
 package os.process_manager;
 
+import common.SyncQueue;
 import hardware.cpu.CPU;
 import hardware.cpu.CPUContext;
 import os.compiler.Compiler;
@@ -24,8 +25,8 @@ public class ProcessManager {
     // components
     private Process runningProcess = null;
     private boolean[] processIdTable = new boolean[100];
-    private final Queue<Process> readyQueue = new LinkedList<>();
-    private final Queue<Process> blockQueue = new LinkedList<>();
+    private final SyncQueue<Process> readyQueue = new SyncQueue<>();
+    private final SyncQueue<Process> blockQueue = new SyncQueue<>();
 
     public ProcessManager(CPU cpu) {
         // set associations
@@ -110,11 +111,11 @@ public class ProcessManager {
         return cpu.getContext();
     }
 
-    public Queue<Process> getReadyQueue() {
+    public SyncQueue<Process> getReadyQueue() {
         return readyQueue;
     }
 
-    public Queue<Process> getBlockQueue() {
+    public SyncQueue<Process> getBlockQueue() {
         return blockQueue;
     }
 

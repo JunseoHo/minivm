@@ -26,10 +26,10 @@ public class ProcessQueuePanel extends MiniVMPanel {
     @Override
     protected void updatePanel() {
         readyQueue.clear();
-        for (Process process : processManager.getReadyQueue())
+        for (Process process : processManager.getReadyQueue().getQueue())
             readyQueue.add(new String[]{Integer.toString(process.id), process.name});
         blockQueue.clear();
-        for (Process process : processManager.getBlockQueue())
+        for (Process process : processManager.getBlockQueue().getQueue())
             blockQueue.add(new String[]{Integer.toString(process.id), process.name});
     }
 

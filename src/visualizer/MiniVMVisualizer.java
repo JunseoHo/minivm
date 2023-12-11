@@ -35,7 +35,7 @@ public class MiniVMVisualizer extends JFrame {
         // create components
         mainPanel = new MiniVMPanel();
         mainPanel.setLayout(new CardLayout());
-        mainPanel.add(new ProcessManagerPanel(os.processManager));
+        mainPanel.add(new ProcessManagerPanel(os.processManager, os.memoryManager));
         mainPanel.add(new MemoryManagerPanel(os.memoryManager));
         mainPanel.add(new FileSystemPanel(os.fileSystem));
         add(mainPanel, BorderLayout.CENTER);

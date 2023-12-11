@@ -10,6 +10,11 @@ import java.util.List;
 
 public class MiniVMUtils {
 
+    public static final String ALLOCATED = "ALLOCATED";
+    public static final String FREE = "FREE";
+    public static final String READ = "READ";
+    public static final String WRITE = "WRITE";
+
     public static boolean sleep(int millis) {
         try {
             Thread.sleep(millis);

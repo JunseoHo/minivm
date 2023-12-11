@@ -1,5 +1,6 @@
 package visualizer.memory_manager_panel;
 
+import hardware.ram.RamHistory;
 import os.memory_manager.MemoryManager;
 import visualizer.common.MiniVMPanel;
 import visualizer.common.MiniVMTextArea;
@@ -13,7 +14,7 @@ public class RAMHistoryPanel extends MiniVMPanel {
 
     private MemoryManager memoryManager;
     private JTextArea output;
-    private Queue<String> histories = new LinkedList<>();
+    private Queue<RamHistory> histories = new LinkedList<>();
 
     public RAMHistoryPanel(MemoryManager memoryManager) {
         this.memoryManager = memoryManager;
@@ -26,7 +27,9 @@ public class RAMHistoryPanel extends MiniVMPanel {
         while (histories.size() > 12) histories.poll();
         histories.add(memoryManager.getRAMHistories().poll());
         String text = "";
-        for (String history : histories) text += history + "\n";
+        for (RamHistory history : histories) {
+            text += String.format("%-12s%-20s%s", history.method + ", ", "Address : " + history.address + ", ", "Value : " + history.value) + "\n";
+        }
         output.setText(text);
     }
 

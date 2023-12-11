@@ -1,6 +1,7 @@
 package visualizer.memory_manager_panel;
 
 import os.memory_manager.MemoryManager;
+import os.memory_manager.Page;
 import visualizer.common.MiniVMColor;
 import visualizer.common.MiniVMPanel;
 
@@ -22,10 +23,10 @@ public class PageTablePanel extends MiniVMPanel {
         g.setColor(Color.GRAY);
         g.fillRect(20, 0, getWidth() - 40, getHeight() / 6);
         int totalLength = getWidth() - 40;
-        Boolean[] pageTable = memoryManager.getPageTable();
+        Page[] pageTable = memoryManager.getPageTable();
         int blockWidth = totalLength / pageTable.length;
         for (int i = 0; i < pageTable.length; i++) {
-            if (pageTable[i]) {
+            if (pageTable[i].inUsed) {
                 g.setColor(MiniVMColor.HIGHLIGHT);
                 g.fillRect(i * blockWidth + 20, 0, blockWidth, getHeight() / 6);
             }

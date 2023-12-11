@@ -16,7 +16,7 @@ import java.util.Scanner;
 
 public class MiniVM {
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) {
         CPU cpu = new CPU();
         RAM ram = new RAM();
         Disk disk = new Disk();

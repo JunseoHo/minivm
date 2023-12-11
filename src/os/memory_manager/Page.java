@@ -2,17 +2,14 @@ package os.memory_manager;
 
 public class Page {
 
-    public int base;
+    public int physicalBase;
     public int size;
+    public boolean inUsed;
 
-    public Page(int base, int size, boolean inUsed) {
-        this.base = base;
+    public Page(int physicalBase, int size) {
+        this.physicalBase = physicalBase;
         this.size = size;
-    }
-
-    @Override
-    public String toString() {
-        return "Page [" + base + ", " + size + "]";
+        this.inUsed = false;
     }
 
 }
