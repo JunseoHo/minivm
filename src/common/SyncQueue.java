@@ -64,4 +64,11 @@ public class SyncQueue<T> {
         }
     }
 
+    public boolean isFull() {
+        return false;
+    }
+
+    public T peek() {
+        return queue.peek();
+    }
 }

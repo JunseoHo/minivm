@@ -28,6 +28,7 @@ public class RAMHistoryPanel extends MiniVMPanel {
         histories.add(memoryManager.getRAMHistories().poll());
         String text = "";
         for (RamHistory history : histories) {
+            //if (history == null) continue;
             text += String.format("%-12s%-20s%s", history.method + ", ", "Address : " + history.address + ", ", "Value : " + history.value) + "\n";
         }
         output.setText(text);

@@ -1,20 +1,23 @@
 package common.bus;
 
 
+import common.SyncQueue;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.Semaphore;
 
-public class Component<T extends Event> {
+public class Component<T extends Interrupt> {
 
     private Bus<T> bus;
     private String name;
-    protected Queue<T> queue;
+    protected SyncQueue<T> queue;
 
     public Component() {
         bus = null;
         name = null;
-        queue = new LinkedList<>();
+        queue = new SyncQueue<>();
     }
 
     public boolean associate(Bus<T> bus, String name) {
@@ -30,6 +33,7 @@ public class Component<T extends Event> {
 
     protected boolean send(T o) {
         if (bus == null) return false;
+        System.out.println(name() + " -> " + o.id());
         return bus.send(o);
     }
 
@@ -42,6 +46,7 @@ public class Component<T extends Event> {
         if (bus == null || name == null) return null;
         T o;
         while ((o = tryReceive()) == null) ;
+        System.out.println(name() + " <- " + o.id());
         return o;
     }
 

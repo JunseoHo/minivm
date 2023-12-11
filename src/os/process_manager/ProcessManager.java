@@ -1,8 +1,10 @@
 package os.process_manager;
 
 import common.SyncQueue;
+import common.bus.SWInterrupt;
 import hardware.cpu.CPU;
 import hardware.cpu.CPUContext;
+import os.OSModule;
 import os.compiler.Compiler;
 import os.file_system.FileSystem;
 import os.memory_manager.MemoryManager;
@@ -12,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public class ProcessManager {
+public class ProcessManager extends OSModule {
     // attributes
     private static final int DEFAULT_DATA_SIZE = 16;
     private static final int DEFAULT_STACK_SIZE = 64;
@@ -47,8 +49,12 @@ public class ProcessManager {
         process.setData(process.codeBase + process.codeSize, DEFAULT_DATA_SIZE);
         process.setStack(process.dataBase + process.dataSize, DEFAULT_STACK_SIZE);
         process.setHeap(process.stackBase + process.stackSize, DEFAULT_HEAP_SIZE);
-        if ((process.pageTable = memoryManager.allocate(1)) == null) return "Page fault.";
-        memoryManager.write(process.pageTable.get(0), 0, 469762048); // 0 00111 00 000000000000 000000000000
+        send(new SWInterrupt(SWInterrupt.MM, SWInterrupt.REQUEST_ALLOCATE_MEMORY, 1));
+        SWInterrupt intr = receive(SWInterrupt.RESPONSE_ALLOCATE_MEMORY, SWInterrupt.OUT_OF_MEMORY);
+        if (intr.id() == SWInterrupt.OUT_OF_MEMORY) return "Page fault.";
+        process.pageTable = (List<Integer>) intr.values()[0];
+        send(new SWInterrupt(SWInterrupt.MM, SWInterrupt.REQUEST_WRITE_MEMORY, process.pageTable.get(0), 0, 469762048));
+        receive(SWInterrupt.RESPONSE_WRITE_MEMORY);
         runningProcess = process;
         return "Process " + "init_process" + " has been created.";
     }
@@ -63,28 +69,24 @@ public class ProcessManager {
         process.setData(process.codeBase + process.codeSize, DEFAULT_DATA_SIZE);
         process.setStack(process.dataBase + process.dataSize, DEFAULT_STACK_SIZE);
         process.setHeap(process.stackBase + process.stackSize, DEFAULT_HEAP_SIZE);
-        if ((process.pageTable = memoryManager.allocate(process.size())) == null) return "Page fault.";
-        for (int codeIndex = 0; codeIndex < machineCodes.size(); codeIndex++)
-            memoryManager.write(process.pageTable.get(codeIndex >> 6), codeIndex & 63, machineCodes.get(codeIndex));
-        for (int heapIndex = 0; heapIndex < process.heapSize; heapIndex++)
-            memoryManager.write(process.pageTable.get((heapIndex + process.heapBase) >> 6), (heapIndex + process.heapBase) & 63, null);
+        send(new SWInterrupt(SWInterrupt.MM, SWInterrupt.REQUEST_ALLOCATE_MEMORY, process.size()));
+        SWInterrupt intr = receive(SWInterrupt.RESPONSE_ALLOCATE_MEMORY, SWInterrupt.OUT_OF_MEMORY);
+        if (intr.id() == SWInterrupt.OUT_OF_MEMORY) return "Page fault.";
+        process.pageTable = (List<Integer>) intr.values()[0];
+
+        for (int codeIndex = 0; codeIndex < machineCodes.size(); codeIndex++) {
+            send(new SWInterrupt(SWInterrupt.MM, SWInterrupt.REQUEST_WRITE_MEMORY,
+                    process.pageTable.get(codeIndex >> 6), codeIndex & 63, machineCodes.get(codeIndex)));
+            receive(SWInterrupt.RESPONSE_WRITE_MEMORY);
+        }
+        for (int heapIndex = 0; heapIndex < process.heapSize; heapIndex++) {
+            send(new SWInterrupt(SWInterrupt.MM, SWInterrupt.REQUEST_WRITE_MEMORY,
+                    process.pageTable.get((heapIndex + process.heapBase) >> 6), (heapIndex + process.heapBase) & 63, null));
+            receive(SWInterrupt.RESPONSE_WRITE_MEMORY);
+        }
         if (runningProcess == null) runningProcess = process;
         else readyQueue.add(process);
         return "Process " + programName + " has been created.";
-    }
-
-    public String createProcess(List<Integer> machineCodes) {
-        Process process = new Process(0, "Sample");
-        process.setCode(0, machineCodes.size());
-        process.setData(process.codeBase + process.codeSize, DEFAULT_DATA_SIZE);
-        process.setStack(process.dataBase + process.dataSize, DEFAULT_STACK_SIZE);
-        process.setHeap(process.stackBase + process.stackSize, DEFAULT_HEAP_SIZE);
-        if ((process.pageTable = memoryManager.allocate(process.size())) == null) return "Page fault.";
-        for (int codeIndex = 0; codeIndex < machineCodes.size(); codeIndex++)
-            memoryManager.write(process.pageTable.get(codeIndex >> 6), codeIndex & 63, machineCodes.get(codeIndex));
-        if (runningProcess == null) runningProcess = process;
-        else readyQueue.add(process);
-        return "Process " + "Sample" + " has been created.";
     }
 
     public void switchContext() {
@@ -98,7 +100,8 @@ public class ProcessManager {
     public void terminateProcess() {
         if (runningProcess == null) return;
         freeProcessId(runningProcess.id);
-        memoryManager.free(runningProcess.pageTable);
+        send(new SWInterrupt(SWInterrupt.MM, SWInterrupt.REQUEST_FREE_MEMORY, runningProcess.pageTable));
+        receive(SWInterrupt.RESPONSE_FREE_MEMORY);
         runningProcess = readyQueue.poll();
         cpu.setContext(runningProcess.getCPUContext());
     }
@@ -152,6 +155,11 @@ public class ProcessManager {
 
     public void freeProcessId(int i) {
         processIdTable[i - 10000] = false;
+    }
+
+    @Override
+    public void run() {
+
     }
 
 }
