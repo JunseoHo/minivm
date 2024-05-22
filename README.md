@@ -1,58 +1,6 @@
 <h1 align="center">MiniVM</h1>
 <div align="center"><i>Summary : This project is about implementation of hardware and operating system.<br>
 The goal is to implement hardware working and resource management of operating system in Java</i></div>
-<h1>Contents</h1>
-<ol type='I'>
-<li>Hardware
-    <ol>
-        <li>CPU
-            <ol>
-                <li>Register</li>
-                <li>Instruction set architecture</li>
-            </ol>
-        </li>
-        <li>MMU</li>
-            <ol>
-                <li>Address translation</li>
-            </ol>
-        <li>RAM
-            <ol>
-                <li>Frame</li>
-            </ol>
-        </li>
-        <li>Disk
-            <ol>
-                <li>Sector</li>
-                <li>Flatter</li>
-            </ol>
-        </li>
-    </ol>
-<li>Operating system
-    <ol>
-        <li>Process manager
-            <ol>
-                <li>Thread</li>
-                <li>Process</li>
-                <li>Scheduler</li>
-            </ol>
-        </li>
-        <li>Memory manager
-             <ol>
-                <li>Page</li>
-                <li>Heap</li>
-            </ol>
-        </li>
-        <li>File manager
-            <ol>
-                <li>Cluster</li>
-                <li>File allocation table</li>
-                <li>Directory entry</li>
-                <li>Executable</li>
-            </ol>
-        </li> 
-    </ol>
-</li>
-</ol>
 
 <h1>Hardware</h1>
 <h2>CPU</h2>
@@ -91,6 +39,30 @@ Segment designation is done through Operand 0, with 0 being considered the data 
 |   Allocate    |   ALC    | Allocate heap memory and store base into AX |                                                  
 |     Free      |   FRE    | Free heap memory                            |                                                  
 
+# Oprating System
 
+## File System
 
+![file_system.png](images%2Ffile_system.png)
 
+- The left panel is a memory dump of the FAT.
+- The center panel is a memory dump of the data section.
+- The right panel is a panel where you can open, update, and close the file.
+
+The Memory Dump panel automatically shows you where physical values in the disk have changed when they do.
+
+## Memory Manager
+
+![memory_manager.png](images%2Fmemory_manager.png)
+
+- The status bar at the top is the percentage of memory currently in use.
+- The top panel is the I/O log for main memory.
+- The bottom panel is the alloc/free log for main memory.
+
+## Process Manager
+
+![procrss_manager.png](images%2Fprocrss_manager.png)
+
+- The left panel is the CPU's register values.
+- The center panel is the running process's PCB, allocated pages, and allocated heap memory.
+- The right panel is a list of processes loaded on main memory.
